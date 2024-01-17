@@ -2,16 +2,15 @@ package net.vulkanmod.render.vertex;
 
 import net.minecraft.client.renderer.RenderType;
 import net.vulkanmod.Initializer;
-import net.vulkanmod.vulkan.VRenderSystem;
 
 import java.util.EnumSet;
 
 public enum TerrainRenderType {
-    SOLID(RenderType.solid(), 262144 /*BIG_BUFFER_SIZE*/),
-    CUTOUT_MIPPED(RenderType.cutoutMipped(), 131072 /*SMALL_BUFFER_SIZE*/),
-    CUTOUT(RenderType.cutout(), 131072 /*SMALL_BUFFER_SIZE*/),
-    TRANSLUCENT(RenderType.translucent(), 262144 /*MEDIUM_BUFFER_SIZE*/),
-    TRIPWIRE(RenderType.tripwire(), 262144 /*MEDIUM_BUFFER_SIZE*/);
+    SOLID(RenderType.solid(), 262144),
+    CUTOUT_MIPPED(RenderType.cutoutMipped(), 131072),
+    CUTOUT(RenderType.cutout(), 131072),
+    TRANSLUCENT(RenderType.translucent(), 262144),
+    TRIPWIRE(RenderType.tripwire(), 262144);
 
     public static final TerrainRenderType[] VALUES = TerrainRenderType.values();
 
@@ -19,11 +18,10 @@ public enum TerrainRenderType {
     public static final EnumSet<TerrainRenderType> SEMI_COMPACT_RENDER_TYPES = EnumSet.of(CUTOUT_MIPPED, CUTOUT, TRANSLUCENT);
     public static final EnumSet<TerrainRenderType> ALL_RENDER_TYPES = EnumSet.allOf(TerrainRenderType.class);
 
-    private final int maxSize;  //Not sure if this should be changed to UINT16_INDEX_MAX * vertexSize
-    private final int initialSize; //Only used W/ Per RenderTy[e AreaBuffers
+    private final int maxSize;
+    private final int initialSize;
 
     TerrainRenderType(RenderType renderType, int initialSize) {
-
         this.maxSize = renderType.bufferSize();
         this.initialSize = initialSize;
     }
@@ -56,4 +54,4 @@ public enum TerrainRenderType {
     public int getInitialSize() {
         return initialSize;
     }
- }
+}
