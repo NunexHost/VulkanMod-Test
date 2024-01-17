@@ -29,7 +29,7 @@ public abstract class SpriteUtil {
         try(MemoryStack stack = MemoryStack.stackPush()) {
             // Batch layout transitions
             for (VulkanImage image : transitionedLayouts) {
-                if (!image.isReadOnlyLayout(stack)) {
+                if (image.getImageLayout() != VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
                     image.readOnlyLayout(stack, commandBuffer);
                 }
             }
