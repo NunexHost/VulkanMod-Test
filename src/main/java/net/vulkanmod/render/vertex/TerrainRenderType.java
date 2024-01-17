@@ -18,8 +18,8 @@ public enum TerrainRenderType {
     public static final EnumSet<TerrainRenderType> SEMI_COMPACT_RENDER_TYPES = EnumSet.of(CUTOUT_MIPPED, CUTOUT, TRANSLUCENT);
     public static final EnumSet<TerrainRenderType> ALL_RENDER_TYPES = EnumSet.allOf(TerrainRenderType.class);
 
-    private final int maxSize;
-    private final int initialSize;
+    public final int maxSize;
+    public final int initialSize;
 
     TerrainRenderType(RenderType renderType, int initialSize) {
         this.maxSize = renderType.bufferSize();
