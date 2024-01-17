@@ -4,14 +4,14 @@ import net.vulkanmod.vulkan.texture.VulkanImage;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkCommandBuffer;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public abstract class SpriteUtil {
 
     private static boolean doUpload = false;
 
-    private static List<VulkanImage> transitionedLayouts = new ArrayList<>();
+    private static final Set<VulkanImage> transitionedLayouts = new HashSet<>();
 
     public static void setDoUpload(boolean b) {
         doUpload = b;
@@ -27,14 +27,8 @@ public abstract class SpriteUtil {
 
     public static void transitionLayouts(VkCommandBuffer commandBuffer) {
         try(MemoryStack stack = MemoryStack.stackPush()) {
-            // Batch layout transitions
-            for (VulkanImage image : transitionedLayouts) {
-                if (image.getImageLayout() != VkImageLayout.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-                    image.readOnlyLayout(stack, commandBuffer);
-                }
-            }
+            transitionedLayouts.forEach(image -> image.readOnlyLayout(stack, commandBuffer));
 
-            // Clear the list
             transitionedLayouts.clear();
         }
     }
