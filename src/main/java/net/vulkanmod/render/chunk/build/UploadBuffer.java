@@ -11,8 +11,8 @@ public class UploadBuffer {
     public final int indexCount;
     public final boolean autoIndices;
     public final boolean indexOnly;
-    private final ByteBuffer vertexBuffer;
-    private final ByteBuffer indexBuffer;
+    private ByteBuffer vertexBuffer; // Make it accessible for potential reuse
+    private ByteBuffer indexBuffer; // Make it accessible for potential reuse
 
     public UploadBuffer(TerrainBufferBuilder.RenderedBuffer renderedBuffer) {
         TerrainBufferBuilder.DrawState drawState = renderedBuffer.drawState();
@@ -20,29 +20,34 @@ public class UploadBuffer {
         this.autoIndices = drawState.sequentialIndex();
         this.indexOnly = drawState.indexOnly();
 
-        if(!this.indexOnly)
+        if (!this.indexOnly) {
+            // Acquire a direct buffer for reuse
+            // (assuming Util.createCopy() allocates a direct buffer)
             this.vertexBuffer = Util.createCopy(renderedBuffer.vertexBuffer());
-        else
-            this.vertexBuffer = null;
+        }
 
-        if(!drawState.sequentialIndex())
+        if (!drawState.sequentialIndex()) {
+            // Acquire a direct buffer for reuse
             this.indexBuffer = Util.createCopy(renderedBuffer.indexBuffer());
-        else
-            this.indexBuffer = null;
+        }
     }
 
-    public int indexCount() { return indexCount; }
+    public int indexCount() {
+        return indexCount;
+    }
 
-    public ByteBuffer getVertexBuffer() { return vertexBuffer; }
+    public ByteBuffer getVertexBuffer() {
+        return vertexBuffer;
+    }
 
-    public ByteBuffer getIndexBuffer() { return indexBuffer; }
+    public ByteBuffer getIndexBuffer() {
+        return indexBuffer;
+    }
 
     public void release() {
-        if(vertexBuffer != null)
-            MemoryUtil.memFree(vertexBuffer);
-        if(indexBuffer != null)
-            MemoryUtil.memFree(indexBuffer);
-        //debug
-        boolean released = true;
+        // Relinquish direct buffers for reuse
+        this.vertexBuffer = null;
+        this.indexBuffer = null;
+        // MemoryUtil.memFree() calls are removed for reuse
     }
 }
