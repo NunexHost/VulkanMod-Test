@@ -70,7 +70,7 @@ public class CubeModel {
                             this.transformed[baseIndex + 1],
                             this.transformed[baseIndex + 2],
                             this.transformed[baseIndex + 3]
-                    }, ..., facing); // Fill in other arguments as needed
+                    }, facing.getNormal(), facing.getTextureOffset(), facing.getColorIndex());
             polygons[facing.ordinal()] = polygon;
         }
     }
