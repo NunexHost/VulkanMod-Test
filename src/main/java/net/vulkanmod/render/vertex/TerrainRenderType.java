@@ -19,9 +19,8 @@ public enum TerrainRenderType {
     public static final EnumSet<TerrainRenderType> SEMI_COMPACT_RENDER_TYPES = EnumSet.of(CUTOUT_MIPPED, CUTOUT, TRANSLUCENT);
     public static final EnumSet<TerrainRenderType> ALL_RENDER_TYPES = EnumSet.allOf(TerrainRenderType.class);
 
-
-    public final int maxSize;  //Not sure if this should be changed to UINT16_INDEX_MAX * vertexSize
-    public final int initialSize; //Only used W/ Per RenderTy[e AreaBuffers
+    private final int maxSize;  //Not sure if this should be changed to UINT16_INDEX_MAX * vertexSize
+    private final int initialSize; //Only used W/ Per RenderTy[e AreaBuffers
 
     TerrainRenderType(RenderType renderType, int initialSize) {
 
@@ -30,18 +29,31 @@ public enum TerrainRenderType {
     }
 
     public static EnumSet<TerrainRenderType> getActiveLayers() {
-        return !Initializer.CONFIG.fastLeavesFix ? COMPACT_RENDER_TYPES : SEMI_COMPACT_RENDER_TYPES;
+        return Initializer.CONFIG.fastLeavesFix ? SEMI_COMPACT_RENDER_TYPES : COMPACT_RENDER_TYPES;
     }
 
     public static TerrainRenderType get(String renderType) {
-        return switch (renderType)
-        {
-            case "solid" -> SOLID;
-            case "cutout_mipped" -> CUTOUT_MIPPED;
-            case "cutout" -> CUTOUT;
-            case "translucent" -> TRANSLUCENT;
-            case "tripwire" -> TRIPWIRE;
-            default -> throw new IllegalStateException("Unexpected value: " + renderType);
-        };
+        switch (renderType) {
+            case "solid":
+                return SOLID;
+            case "cutout_mipped":
+                return CUTOUT_MIPPED;
+            case "cutout":
+                return CUTOUT;
+            case "translucent":
+                return TRANSLUCENT;
+            case "tripwire":
+                return TRIPWIRE;
+            default:
+                throw new IllegalStateException("Unexpected value: " + renderType);
+        }
+    }
+
+    public int getMaxSize() {
+        return maxSize;
+    }
+
+    public int getInitialSize() {
+        return initialSize;
     }
 }
