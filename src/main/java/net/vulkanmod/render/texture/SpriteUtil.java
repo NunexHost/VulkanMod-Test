@@ -4,14 +4,14 @@ import net.vulkanmod.vulkan.texture.VulkanImage;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkCommandBuffer;
 
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class SpriteUtil {
 
     private static boolean doUpload = false;
 
-    private static final HashSet<VulkanImage> transitionedLayouts = new HashSet<>();
+    private static List<VulkanImage> transitionedLayouts = new ArrayList<>();
 
     public static void setDoUpload(boolean b) {
         doUpload = b;
@@ -26,17 +26,15 @@ public abstract class SpriteUtil {
     }
 
     public static void transitionLayouts(VkCommandBuffer commandBuffer) {
-        // Reutilize uma instância única de MemoryStack
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            // Agrupe transições em um único comando
-            int[] imageIds = transitionedLayouts.stream().mapToInt(image -> Math.toIntExact(image.getId())).toArray();
-            commandBuffer.pipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                    0, null, null, Arrays.stream(imageIds).mapToObj(imageId ->
-                            new VkImageMemoryBarrier(VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                                    0, 0, imageId, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL))
-                            .toArray(VkImageMemoryBarrier[]::new));
+        try(MemoryStack stack = MemoryStack.stackPush()) {
+            // Batch layout transitions
+            for (VulkanImage image : transitionedLayouts) {
+                if (!image.isReadOnlyLayout(stack)) {
+                    image.readOnlyLayout(stack, commandBuffer);
+                }
+            }
 
-            // Limpe a lista de transições
+            // Clear the list
             transitionedLayouts.clear();
         }
     }
