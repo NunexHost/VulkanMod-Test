@@ -25,8 +25,11 @@ public class OptionsScreenM extends Screen {
         super(title);
     }
 
-    @Inject(method = "method_19828", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "method_19828", at = @At("TAIL"), cancellable = true)
     private void injectVideoOptionScreen(CallbackInfoReturnable<Screen> cir) {
+        if (!options.isVulkanSupported()) {
+            cir.cancel();
+        }
         cir.setReturnValue(new OptionScreenV(Component.literal("Video Setting"), this));
     }
 }
