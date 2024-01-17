@@ -27,15 +27,15 @@ public class SortUtil {
             else {
                 int i = from;
                 int p = from;
+                int q = mid;
 
-                for(int q = mid; i < to; ++i) {
-                    if (q < to && (p >= mid || Float.compare(distances[supp[q]],  distances[supp[p]]) > 0)) {
-                        indices[i] = supp[q++];
+                while (i < to) {
+                    if (q < to && (p >= mid || Float.compare(distances[supp[q]], distances[supp[p]]) > 0)) {
+                        indices[i++] = supp[q++];
                     } else {
-                        indices[i] = supp[p++];
+                        indices[i++] = supp[p++];
                     }
                 }
-
             }
         }
     }
@@ -47,7 +47,6 @@ public class SortUtil {
     public static void quickSort(int[] is, float[] distances, int from, int to) {
         int len = to - from;
         if (len < 16) {
-//            selectionSort(is, from, to, comp);
             insertionSort(is, distances, from, to);
         } else {
             int m = from + len / 2;
@@ -68,34 +67,34 @@ public class SortUtil {
 
             swap(is, m, d);
             float mValue = distances[v];
-            while(true) {
+            while (true) {
 
-                while(b < c) {
-                    if(Float.compare(distances[is[b]], mValue) > 0) {
-                        while(b < c) {
-                            if(Float.compare(distances[is[c]], mValue) < 0) {
+                while (b < c) {
+                    if (Float.compare(distances[is[b]], mValue) > 0) {
+                        while (b < c) {
+                            if (Float.compare(distances[is[c]], mValue) < 0) {
                                 swap(is, b, c);
                                 b++;
                                 c--;
                                 break;
-                            }
-                            else {
+                            } else {
                                 c--;
                             }
                         }
-                    }
-                    else {
+                    } else {
                         b++;
                     }
                 }
 
                 swap(is, d, b);
 
-                if(b - a > 1)
+                if (b - a > 1) {
                     quickSort(is, distances, a, b);
+                }
 
-                if(d - b > 1)
+                if (d - b > 1) {
                     quickSort(is, distances, b, d);
+                }
 
                 return;
             }
@@ -106,34 +105,33 @@ public class SortUtil {
     private static void insertionSort(int[] is, float[] distances, int from, int to) {
         int i = from;
 
-        while(true) {
+        while (true) {
             ++i;
-            if (i >= to) {
-                return;
-            }
+           if (i >= to) {
+            return;
+        }
 
-            int t = is[i];
-            int j = i;
+        int t = is[i];
+        int j = i;
 
-            for(int u = is[i - 1]; Float.compare(distances[u], distances[t]) < 0; u = is[j - 1]) {
-                is[j] = u;
-                if (from == j - 1) {
-                    --j;
-                    break;
-                }
-
+        for (int u = is[i - 1]; Float.compare(distances[u], distances[t]) < 0; u = is[j - 1]) {
+            is[j] = u;
+            if (from == j - 1) {
                 --j;
+                break;
             }
 
-            is[j] = t;
+            --j;
+        }
+
+        is[j] = t;
         }
     }
 
     public static void swap(int[] x, int a, int b, int n) {
-        for(int i = 0; i < n; ++b, ++i, ++a) {
+        for (int i = 0; i < n; ++b, ++i, ++a) {
             swap(x, a, b);
         }
-
     }
 
     public static void swap(int[] x, int a, int b) {
@@ -148,4 +146,7 @@ public class SortUtil {
         int bc = comp.compare(x[b], x[c]);
         return ab < 0 ? (bc < 0 ? b : (ac < 0 ? c : a)) : (bc > 0 ? b : (ac > 0 ? c : a));
     }
+
 }
+
+                            
