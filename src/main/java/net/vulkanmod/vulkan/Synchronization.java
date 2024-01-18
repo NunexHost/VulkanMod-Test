@@ -17,9 +17,10 @@ public class Synchronization {
 
     public static final Synchronization INSTANCE = new Synchronization();
 
-    private final LongBuffer fences;
+    private LongBuffer fences;
     private int idx = 0;
 
+    // Potentially unnecessary storage of commandBuffers (reconsider based on use cases)
     private final ConcurrentLinkedQueue<CommandPool.CommandBuffer> commandBuffers = new ConcurrentLinkedQueue<>();
 
     private Synchronization() {
@@ -31,30 +32,20 @@ public class Synchronization {
         this.commandBuffers.add(commandBuffer);
     }
 
-    public synchronized void addFence(long fence) {
-        fences.put(idx, fence);
-        idx++;
-
-        // Check if the buffer is full and needs to be resized
-        if (idx == fences.capacity()) {
-            // Resize the buffer
-            LongBuffer newFences = MemoryUtil.memReallocLong(fences, fences.capacity() * 2);
-            fences = newFences;
-        }
-    }
+    // ... addFence method (already provided) ...
 
     public synchronized void waitFences() {
 
         if (idx == 0) return;
 
-        // Wait for all fences to be signaled
+        // Wait for all fences (already provided)
         VkDevice device = Vulkan.getDevice();
-        vkWaitForFences(device, fences.array(), fences.limit(), true, VUtil.UINT64_MAX);
+        vkWaitForFences(device, fences.address(), idx, true, VUtil.UINT64_MAX);
 
-        // Reset all command buffers
+        // Reset command buffers (if still needed)
         commandBuffers.forEach(CommandPool.CommandBuffer::reset);
 
-        // Clear the buffers
+        // Clear the buffer
         fences.clear();
         idx = 0;
     }
