@@ -7,6 +7,8 @@ public class ColorUtil {
 
     static ColorConsumer colorConsumer = new DefaultColorConsumer();
 
+    static float[] pow22 = new float[256];
+
     public static void useGammaCorrection(boolean b) {
         if (b) {
             colorConsumer = new GammaColorConsumer();
@@ -30,33 +32,26 @@ public class ColorUtil {
     }
 
     public static float gamma(float f) {
-        // Pre-calculate the table of powers of 2.2
-        static float[] pow22 = new float[256];
-        for (int i = 0; i < 256; i++) {
-            pow22[i] = (float) Math.pow(i / 255.0f, 2.2f);
-        }
-
-        // Use the table to calculate the gamma value
         return pow22[(int) (f * 255.0f)];
     }
 
     public static void setRGBA_Buffer(MappedBuffer buffer, float r, float g, float b, float a) {
-        // Use Unsafe to write the values directly to the buffer
-        int offset = 0;
-        Unsafe.putFloat(buffer.memory, offset, r);
-        offset += 4;
-        Unsafe.putFloat(buffer.memory, offset, g);
-        offset += 4;
-        Unsafe.putFloat(buffer.memory, offset, b);
-        offset += 4;
-        Unsafe.putFloat(buffer.memory, offset, a);
+        {
+            int offset = 0;
+            Unsafe.putFloat(buffer.memory, offset, r);
+            offset += 4;
+            Unsafe.putFloat(buffer.memory, offset, g);
+            offset += 4;
+            Unsafe.putFloat(buffer.memory, offset, b);
+            offset += 4;
+            Unsafe.putFloat(buffer.memory, offset, a);
+        }
     }
 
-    // Alternative implementation of `setRGBA_Buffer()` that uses a simpler `ColorConsumer` interface
-
     public static void setRGBA_Buffer(ByteBuffer buffer, float r, float g, float b, float a) {
-        // Use the `ColorConsumer` interface to write the values to the buffer
-        colorConsumer.setRGBA(buffer, r, g, b, a);
+        {
+            colorConsumer.setRGBA(buffer, r, g, b, a);
+        }
     }
 
     public static interface ColorConsumer {
