@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static net.vulkanmod.vulkan.queue.Queue.TransferQueue;
-import static net.vulkanmod.vulkan.util.VUtil.align;
 import static org.lwjgl.vulkan.VK10.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 
 public class UniformBuffers {
@@ -46,12 +45,23 @@ public class UniformBuffers {
     public void uploadUBO(ByteBuffer buffer, int offset, int frame)  {
         int size = buffer.remaining();
         int alignedSize = align(size, minOffset);
+
         if (alignedSize > this.bufferSize - this.usedBytes) {
             resizeBuffer((this.bufferSize + alignedSize) * 2);
         }
 
+        // Group upload calls
+        if (commandBuffer == null) {
+            commandBuffer = DeviceManager.getTransferQueue().beginCommands();
+        }
+
         uniformBuffers.get(frame).uploadUBO(buffer, offset);
         usedBytes += alignedSize;
+
+        if (commandBuffer.isFull()) {
+            TransferQueue.submitCommands(commandBuffer);
+            commandBuffer = DeviceManager.getTransferQueue().beginCommands();
+        }
     }
 
     public static int getAlignedSize(int uploadSize) {
@@ -80,12 +90,11 @@ public class UniformBuffers {
     }
 
     public void submitUploads() {
-        if(commandBuffer == null)
-            return;
-
-        DeviceManager.getTransferQueue().submitCommands(commandBuffer);
-        Synchronization.INSTANCE.addCommandBuffer(commandBuffer);
-        commandBuffer = null;
+        if(commandBuffer != null) {
+            TransferQueue.submitCommands(commandBuffer);
+            Synchronization.INSTANCE.addCommandBuffer(commandBuffer);
+            commandBuffer = null;
+        }
     }
 
     public void free() {
@@ -114,7 +123,7 @@ public class UniformBuffers {
 
         protected UniformBuffer(int size, MemoryType memoryType) {
             super(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, memoryType);
-            this.createBuffer(size);
+                        this.createBuffer(size);
         }
 
         public void uploadUBO(ByteBuffer buffer, int offset) {
@@ -139,5 +148,4 @@ public class UniformBuffers {
             createBuffer(newSize);
         }
     }
-
 }
