@@ -2,6 +2,7 @@ package net.vulkanmod.vulkan.util;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import sun.misc.Unsafe;
 
 public class ColorUtil {
 
@@ -36,22 +37,18 @@ public class ColorUtil {
     }
 
     public static void setRGBA_Buffer(MappedBuffer buffer, float r, float g, float b, float a) {
-        {
-            int offset = 0;
-            Unsafe.putFloat(buffer.memory, offset, r);
-            offset += 4;
-            Unsafe.putFloat(buffer.memory, offset, g);
-            offset += 4;
-            Unsafe.putFloat(buffer.memory, offset, b);
-            offset += 4;
-            Unsafe.putFloat(buffer.memory, offset, a);
-        }
+        long address = buffer.address(); // Use address() for MappedBuffer
+        Unsafe.putFloat(address, r);
+        Unsafe.putFloat(address + 4, g);
+        Unsafe.putFloat(address + 8, b);
+        Unsafe.putFloat(address + 12, a);
     }
 
     public static void setRGBA_Buffer(ByteBuffer buffer, float r, float g, float b, float a) {
-        {
-            colorConsumer.setRGBA(buffer, r, g, b, a);
-        }
+        buffer.putFloat(0, r);
+        buffer.putFloat(4, g);
+        buffer.putFloat(8, b);
+        buffer.putFloat(12, a);
     }
 
     public static interface ColorConsumer {
