@@ -4,26 +4,22 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.vulkanmod.vulkan.Renderer;
 import net.vulkanmod.vulkan.Vulkan;
-import net.vulkanmod.vulkan.texture.ImageUtil;
 import net.vulkanmod.vulkan.texture.VTextureSelector;
 import net.vulkanmod.vulkan.texture.VulkanImage;
 import net.vulkanmod.vulkan.util.ColorUtil;
 import org.lwjgl.system.MemoryUtil;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.nio.ByteBuffer;
-import java.util.Locale;
 
 @Mixin(NativeImage.class)
 public abstract class MNativeImage {
 
     @Shadow private long pixels;
+    @Final
     @Shadow private long size;
 
     @Shadow public abstract void close();
@@ -42,8 +38,7 @@ public abstract class MNativeImage {
 
     @Shadow public abstract int getPixelRGBA(int i, int j);
 
-    @Shadow protected abstract void checkAllocated();
-
+    @Unique
     private ByteBuffer buffer;
 
     @Inject(method = "<init>(Lcom/mojang/blaze3d/platform/NativeImage$Format;IIZ)V", at = @At("RETURN"))
@@ -81,25 +76,21 @@ public abstract class MNativeImage {
     public void downloadTexture(int level, boolean removeAlpha) {
         RenderSystem.assertOnRenderThread();
 
-        ImageUtil.downloadTexture(Renderer.useMode ? VTextureSelector.getBoundTexture(0) : Vulkan.getSwapChain().getColorAttachment(), this.pixels);
+        VulkanImage.downloadTexture(this.width, this.height, 4, this.buffer, Vulkan.getSwapChain().getColorAttachment());
 
         if (removeAlpha && this.format.hasAlpha()) {
-            if (this.format != NativeImage.Format.RGBA) {
-                throw new IllegalArgumentException(String.format(Locale.ROOT, "getPixelRGBA only works on RGBA images; have %s", this.format));
-            }
+            for (int i = 0; i < this.height; ++i) {
+                for (int j = 0; j < this.getWidth(); ++j) {
+                    int v = this.getPixelRGBA(j, i);
 
-            for (long l = 0; l < this.width * this.height * 4L; l+=4) {
-                int v =  MemoryUtil.memGetInt(this.pixels + l);
+                    if(Vulkan.getSwapChain().isBGRAformat)
+                        v = ColorUtil.BGRAtoRGBA(v);
 
-                //TODO
-                if(Vulkan.getSwapChain().isBGRAformat)
-                    v = ColorUtil.BGRAtoRGBA(v);
-
-                v = v | 255 << this.format.alphaOffset();
-                MemoryUtil.memPutInt(this.pixels + l, v);
+                    this.setPixelRGBA(j, i, v | 255 << this.format.alphaOffset());
+                }
             }
         }
 
     }
 
-                }
+}
