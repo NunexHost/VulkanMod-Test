@@ -2,9 +2,13 @@ package net.vulkanmod.vulkan.shader.parser;
 
 import com.mojang.blaze3d.vertex.VertexFormat;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static net.vulkanmod.vulkan.shader.parser.UniformParser.removeSemicolon;
 
@@ -12,8 +16,8 @@ public class InputOutputParser {
     private final GlslConverter converterInstance;
     private final VertexFormat vertexFormat;
 
-    private final AttributeSet vertInAttributes = new AttributeSet();
-    private final AttributeSet vertOutAttributes = new AttributeSet();
+    private final AttributeSet vertInAttributes = new ObjectArrayList<>();
+    private final AttributeSet vertOutAttributes = new ObjectArrayList<>();
 
     private GlslConverter.ShaderStage shaderStage;
 
@@ -70,23 +74,25 @@ public class InputOutputParser {
         //TODO
         StringBuilder builder = new StringBuilder();
 
+        Map<String, Integer> attributeLocationMap = buildAttributeLocationMap();
+
         if(this.shaderStage == GlslConverter.ShaderStage.Vertex) {
             //In
             for(Attribute attribute : this.vertInAttributes.attributes) {
-                builder.append(String.format("layout(location = %d) in %s %s;\n", attribute.location, attribute.type, attribute.name));
+                builder.append(String.format("layout(location = %d) in %s %s;\n", attributeLocationMap.get(attribute.name), attribute.type, attribute.name));
             }
             builder.append("\n");
 
             //Out
             for(Attribute attribute : this.vertOutAttributes.attributes) {
-                builder.append(String.format("layout(location = %d) out %s %s;\n", attribute.location, attribute.type, attribute.name));
+                builder.append(String.format("layout(location = %d) out %s %s;\n", attributeLocationMap.get(attribute.name), attribute.type, attribute.name));
             }
             builder.append("\n");
         }
         else {
             //In
             for(Attribute attribute : this.vertOutAttributes.attributes) {
-                builder.append(String.format("layout(location = %d) in %s %s;\n", attribute.location, attribute.type, attribute.name));
+                builder.append(String.format("layout(location = %d) in %s %s;\n", attributeLocationMap.get(attribute.name), attribute.type, attribute.name));
             }
             builder.append("\n");
 
@@ -101,19 +107,3 @@ public class InputOutputParser {
         this.shaderStage = shaderStage;
     }
 
-    public record Attribute(int location, String type, String name) {}
-
-    static class AttributeSet {
-        final List<Attribute> attributes = new ObjectArrayList<>();
-        int currentLocation = 0;
-
-        void add(String type, String name) {
-            this.attributes.add(new Attribute(this.currentLocation, type, name));
-            this.currentLocation++;
-        }
-
-        boolean contains(String type, String name) {
-            return this.attributes.stream().anyMatch(attribute -> Objects.equals(attribute.name, name) && Objects.equals(attribute.type, type));
-        }
-    }
-}
