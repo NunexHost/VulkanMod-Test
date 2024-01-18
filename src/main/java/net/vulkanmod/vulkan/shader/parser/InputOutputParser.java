@@ -106,4 +106,19 @@ public class InputOutputParser {
     public void setShaderStage(GlslConverter.ShaderStage shaderStage) {
         this.shaderStage = shaderStage;
     }
+    public record Attribute(int location, String type, String name) {}
 
+    static class AttributeSet {
+        final List<Attribute> attributes = new ObjectArrayList<>();
+        int currentLocation = 0;
+
+        void add(String type, String name) {
+            this.attributes.add(new Attribute(this.currentLocation, type, name));
+            this.currentLocation++;
+        }
+
+        boolean contains(String type, String name) {
+            return this.attributes.stream().anyMatch(attribute -> Objects.equals(attribute.name, name) && Objects.equals(attribute.type, type));
+        }
+    }
+}
