@@ -5,7 +5,7 @@ import net.vulkanmod.Initializer;
 import java.nio.ByteBuffer;
 
 public abstract class VTextureSelector {
-    public static final int SIZE = 8;
+    private static final int SIZE = 8;
 
     private static final VulkanImage[] boundTextures = new VulkanImage[SIZE];
 
@@ -48,22 +48,18 @@ public abstract class VTextureSelector {
         texture.uploadSubTextureAsync(mipLevel, width, height, xOffset, yOffset, unpackSkipRows, unpackSkipPixels, unpackRowLength, buffer);
     }
 
-    public static int getTextureIdx(String name) {
+    public static VulkanImage getTexture(String name) {
         return switch (name) {
-            case "Sampler0", "DiffuseSampler" -> 0;
-            case "Sampler1" -> 1;
-            case "Sampler2" -> 2;
-            case "Sampler3" -> 3;
-            case "Sampler4" -> 4;
-            case "Sampler5" -> 5;
-            case "Sampler6" -> 6;
-            case "Sampler7" -> 7;
+            case "Sampler0" -> boundTextures[0];
+            case "Sampler1" -> boundTextures[1];
+            case "Sampler2" -> boundTextures[2];
+            case "Sampler3" -> boundTextures[3];
+            case "Sampler4" -> boundTextures[4];
+            case "Sampler5" -> boundTextures[5];
+            case "Sampler6" -> boundTextures[6];
+            case "Sampler7" -> boundTextures[7];
             default -> throw new IllegalStateException("Unknown sampler name: " + name);
         };
-    }
-
-    public static VulkanImage getImage(int i) {
-        return boundTextures[i];
     }
 
     public static void setLightTexture(VulkanImage texture) {
@@ -85,4 +81,4 @@ public abstract class VTextureSelector {
     public static VulkanImage getBoundTexture(int i) { return boundTextures[i]; }
 
     public static VulkanImage getWhiteTexture() { return whiteTexture; }
-            }
+}
