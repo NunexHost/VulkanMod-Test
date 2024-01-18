@@ -3,7 +3,9 @@ package net.vulkanmod.vulkan.shader.parser;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import org.apache.commons.text.StringEscapeUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,8 +45,8 @@ public class InputOutputParser {
 
             if(this.shaderStage == GlslConverter.ShaderStage.Vertex) {
                 switch (this.ioType) {
-                    case "in" -> this.vertInAttributes.add(this.type, this.name);
-                    case "out" -> this.vertOutAttributes.add(this.type, this.name);
+                    case "in" -> this.vertInAttributes.add(new Attribute(this.type, this.name));
+                    case "out" -> this.vertOutAttributes.add(new Attribute(this.type, this.name));
                 }
             }
             else {
@@ -70,7 +72,6 @@ public class InputOutputParser {
     }
 
     public String createInOutCode() {
-        //TODO
         StringBuilder builder = new StringBuilder();
 
         Map<String, Integer> attributeLocationMap = buildAttributeLocationMap();
@@ -95,7 +96,6 @@ public class InputOutputParser {
             }
             builder.append("\n");
 
-            //TODO
             builder.append(String.format("layout(location = 0) out vec4 fragColor;\n\n"));
         }
 
@@ -105,6 +105,7 @@ public class InputOutputParser {
     public void setShaderStage(GlslConverter.ShaderStage shaderStage) {
         this.shaderStage = shaderStage;
     }
+    
     public record Attribute(int location, String type, String name) {}
 
     static class AttributeSet {
