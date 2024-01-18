@@ -26,7 +26,7 @@ public abstract class VTextureSelector {
         }
 
         textureCache.put("Sampler0", texture);
-        bindTexture("Sampler0");
+        bindTexture(textureCache.get("Sampler0")); // Use the cached texture
     }
 
     public static void bindTexture(int i, VulkanImage texture) {
@@ -40,7 +40,7 @@ public abstract class VTextureSelector {
         }
 
         textureCache.put(String.format("Sampler%d", i), texture);
-        bindTexture(i);
+        bindTexture(textureCache.get(String.format("Sampler%d", i))); // Use the cached texture
     }
 
     public static void bindImage(int i, VulkanImage texture, int level) {
@@ -64,6 +64,7 @@ public abstract class VTextureSelector {
             throw new NullPointerException("Texture is null at index: " + activeTexture);
         }
 
+        // Inline the uploadSubTexture method to improve performance
         texture.uploadSubTextureAsync(mipLevel, width, height, xOffset, yOffset, unpackSkipRows, unpackSkipPixels, unpackRowLength, buffer);
     }
 
@@ -90,14 +91,4 @@ public abstract class VTextureSelector {
     public static VulkanImage getBoundTexture(int i) { return boundTextures[i]; }
 
     public static VulkanImage getWhiteTexture() { return whiteTexture; }
-
-    private static void inlineUploadSubTexture(int mipLevel, int width, int height, int xOffset, int yOffset, int unpackSkipRows, int unpackSkipPixels, int unpackRowLength, ByteBuffer buffer) {
-        VulkanImage texture = boundTextures[activeTexture];
-
-        if (texture == null) {
-            throw new NullPointerException("Texture is null at index: " + activeTexture);
-        }
-
-        texture.uploadSubTextureAsync(mipLevel, width, height, xOffset, yOffset, unpackSkipRows, unpackSkipPixels, unpackRowLength, buffer);
-    }
 }
