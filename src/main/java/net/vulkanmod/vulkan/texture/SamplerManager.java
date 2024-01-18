@@ -72,4 +72,17 @@ public abstract class SamplerManager {
 
             return pTextureSampler.get(0);
         }
-        
+     }
+
+    public static void cleanUp() {
+        for(long id : SAMPLERS.values()) {
+            vkDestroySampler(DeviceManager.device, id, null);
+        }
+    }
+
+    public static final byte LINEAR_FILTERING_BIT = 1;
+    public static final byte CLAMP_BIT = 2;
+    public static final byte USE_MIPMAPS_BIT = 4;
+    public static final byte REDUCTION_MIN_BIT = 8;
+    public static final byte REDUCTION_MAX_BIT = 16;
+}
