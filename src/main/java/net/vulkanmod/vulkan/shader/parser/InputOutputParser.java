@@ -2,36 +2,31 @@ package net.vulkanmod.vulkan.shader.parser;
 
 import com.mojang.blaze3d.vertex.VertexFormat;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static net.vulkanmod.vulkan.shader.parser.UniformParser.removeSemicolon;
 
 public class InputOutputParser {
     private final GlslConverter converterInstance;
-    private final VertexFormat vertexFormat;
+    private VertexFormat vertexFormat;
 
-    private final AttributeSet vertInAttributes = new ObjectArrayList<>();
-    private final AttributeSet vertOutAttributes = new ObjectArrayList<>();
+    private final AttributeSet vertInAttributes = new AttributeSet();
+    private final AttributeSet vertOutAttributes = new AttributeSet();
 
     private GlslConverter.ShaderStage shaderStage;
 
-    private final int currentLocation = 0;
+    private int currentLocation = 0;
     private String ioType;
     private String type;
     private String name;
 
-    public InputOutputParser(GlslConverter converterInstance, VertexFormat vertexFormat) {
+    public InputOutputParser(GlslConverter converterInstance) {
         this.converterInstance = converterInstance;
-        this.vertexFormat = vertexFormat;
     }
 
-    public void parseToken(String token) {
+    public boolean parseToken(String token) {
 
         if (this.ioType == null)
             this.ioType = token;
@@ -44,8 +39,8 @@ public class InputOutputParser {
 
             if(this.shaderStage == GlslConverter.ShaderStage.Vertex) {
                 switch (this.ioType) {
-                    case "in" -> this.vertInAttributes.add(new Attribute(this.type, this.name));
-                    case "out" -> this.vertOutAttributes.add(new Attribute(this.type, this.name));
+                    case "in" -> this.vertInAttributes.add(this.type, this.name);
+                    case "out" -> this.vertOutAttributes.add(this.type, this.name);
                 }
             }
             else {
@@ -60,8 +55,10 @@ public class InputOutputParser {
                 }
             }
             this.resetState();
+            return true;
         }
 
+        return false;
     }
 
     private void resetState() {
@@ -71,30 +68,30 @@ public class InputOutputParser {
     }
 
     public String createInOutCode() {
+        //TODO
         StringBuilder builder = new StringBuilder();
-
-        Map<String, Integer> attributeLocationMap = buildAttributeLocationMap();
 
         if(this.shaderStage == GlslConverter.ShaderStage.Vertex) {
             //In
             for(Attribute attribute : this.vertInAttributes.attributes) {
-                builder.append(String.format("layout(location = %d) in %s %s;\n", attributeLocationMap.get(attribute.name), attribute.type, attribute.name));
+                builder.append(String.format("layout(location = %d) in %s %s;\n", attribute.location, attribute.type, attribute.name));
             }
             builder.append("\n");
 
             //Out
             for(Attribute attribute : this.vertOutAttributes.attributes) {
-                builder.append(String.format("layout(location = %d) out %s %s;\n", attributeLocationMap.get(attribute.name), attribute.type, attribute.name));
+                builder.append(String.format("layout(location = %d) out %s %s;\n", attribute.location, attribute.type, attribute.name));
             }
             builder.append("\n");
         }
         else {
             //In
             for(Attribute attribute : this.vertOutAttributes.attributes) {
-                builder.append(String.format("layout(location = %d) in %s %s;\n", attributeLocationMap.get(attribute.name), attribute.type, attribute.name));
+                builder.append(String.format("layout(location = %d) in %s %s;\n", attribute.location, attribute.type, attribute.name));
             }
             builder.append("\n");
 
+            //TODO multi attachments?
             builder.append(String.format("layout(location = 0) out vec4 fragColor;\n\n"));
         }
 
@@ -104,11 +101,11 @@ public class InputOutputParser {
     public void setShaderStage(GlslConverter.ShaderStage shaderStage) {
         this.shaderStage = shaderStage;
     }
-    
+
     public record Attribute(int location, String type, String name) {}
 
     static class AttributeSet {
-        final List<Attribute> attributes = new ObjectArrayList<>();
+        List<Attribute> attributes = new ObjectArrayList<>();
         int currentLocation = 0;
 
         void add(String type, String name) {
