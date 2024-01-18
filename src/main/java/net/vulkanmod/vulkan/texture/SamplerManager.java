@@ -17,6 +17,7 @@ import static org.lwjgl.vulkan.VK12.VK_SAMPLER_REDUCTION_MODE_MAX;
 import static org.lwjgl.vulkan.VK12.VK_SAMPLER_REDUCTION_MODE_MIN;
 
 public abstract class SamplerManager {
+
     static final float MIP_BIAS = -0.5f;
 
     static final Short2LongMap SAMPLERS = new Short2LongOpenHashMap();
@@ -43,43 +44,19 @@ public abstract class SamplerManager {
             VkSamplerCreateInfo samplerInfo = VkSamplerCreateInfo.calloc(stack);
             samplerInfo.sType(VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO);
 
-            if((flags & LINEAR_FILTERING_BIT) != 0) {
-                samplerInfo.magFilter(VK_FILTER_LINEAR);
-                samplerInfo.minFilter(VK_FILTER_LINEAR);
-            } else {
-                samplerInfo.magFilter(VK_FILTER_NEAREST);
-                samplerInfo.minFilter(VK_FILTER_NEAREST);
-            }
+            samplerInfo.magFilter(flags & LINEAR_FILTERING_BIT != 0 ? VK_FILTER_LINEAR : VK_FILTER_NEAREST);
+            samplerInfo.minFilter(flags & LINEAR_FILTERING_BIT != 0 ? VK_FILTER_LINEAR : VK_FILTER_NEAREST);
 
-            if((flags & CLAMP_BIT) != 0) {
-                samplerInfo.addressModeU(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
-                samplerInfo.addressModeV(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
-                samplerInfo.addressModeW(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
-            } else {
-                samplerInfo.addressModeU(VK_SAMPLER_ADDRESS_MODE_REPEAT);
-                samplerInfo.addressModeV(VK_SAMPLER_ADDRESS_MODE_REPEAT);
-                samplerInfo.addressModeW(VK_SAMPLER_ADDRESS_MODE_REPEAT);
-            }
+            samplerInfo.addressModeU(flags & CLAMP_BIT != 0 ? VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE : VK_SAMPLER_ADDRESS_MODE_REPEAT);
+            samplerInfo.addressModeV(flags & CLAMP_BIT != 0 ? VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE : VK_SAMPLER_ADDRESS_MODE_REPEAT);
+            samplerInfo.addressModeW(flags & CLAMP_BIT != 0 ? VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE : VK_SAMPLER_ADDRESS_MODE_REPEAT);
 
-            samplerInfo.anisotropyEnable(false);
-            //samplerInfo.maxAnisotropy(16.0f);
-            samplerInfo.borderColor(VK_BORDER_COLOR_INT_OPAQUE_WHITE);
-            samplerInfo.unnormalizedCoordinates(false);
-            samplerInfo.compareEnable(false);
-            samplerInfo.compareOp(VK_COMPARE_OP_ALWAYS);
+            samplerInfo.mipmapMode(flags & USE_MIPMAPS_BIT != 0 ? VK_SAMPLER_MIPMAP_MODE_LINEAR : VK_SAMPLER_MIPMAP_MODE_NEAREST);
+            samplerInfo.maxLod(mipLevels);
+            samplerInfo.minLod(0.0F);
+            samplerInfo.mipLodBias(MIP_BIAS);
 
-            if((flags & USE_MIPMAPS_BIT) != 0) {
-                samplerInfo.mipmapMode(VK_SAMPLER_MIPMAP_MODE_LINEAR);
-                samplerInfo.maxLod(mipLevels);
-                samplerInfo.minLod(0.0F);
-                samplerInfo.mipLodBias(MIP_BIAS);
-            } else {
-                samplerInfo.mipmapMode(VK_SAMPLER_MIPMAP_MODE_NEAREST);
-                samplerInfo.maxLod(0.0F);
-                samplerInfo.minLod(0.0F);
-            }
-
-            //Reduction Mode
+            // Reduction Mode
             if((flags & (REDUCTION_MAX_BIT | REDUCTION_MIN_BIT)) != 0) {
                 VkSamplerReductionModeCreateInfo reductionModeInfo = VkSamplerReductionModeCreateInfo.calloc(stack);
                 reductionModeInfo.sType$Default();
@@ -95,17 +72,4 @@ public abstract class SamplerManager {
 
             return pTextureSampler.get(0);
         }
-    }
-
-    public static void cleanUp() {
-        for(long id : SAMPLERS.values()) {
-            vkDestroySampler(DeviceManager.device, id, null);
-        }
-    }
-
-    public static final byte LINEAR_FILTERING_BIT = 1;
-    public static final byte CLAMP_BIT = 2;
-    public static final byte USE_MIPMAPS_BIT = 4;
-    public static final byte REDUCTION_MIN_BIT = 8;
-    public static final byte REDUCTION_MAX_BIT = 16;
-}
+        
