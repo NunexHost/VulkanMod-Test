@@ -2,6 +2,7 @@ package net.vulkanmod.render.chunk;
 
 import net.minecraft.core.BlockPos;
 import net.vulkanmod.render.chunk.util.StaticQueue;
+import net.vulkanmod.render.vertex.TerrainRenderType;
 import org.jetbrains.annotations.NotNull;
 import org.joml.FrustumIntersection;
 import org.joml.Vector3i;
