@@ -71,6 +71,4 @@ public class ModelPartM {
                     vertexBuilder.vertex(pos.x(), pos.y(), pos.z(), packedColor, vertex.u, vertex.v, j, i, packedNormal);
                 }
             }
-        }
-
 }
