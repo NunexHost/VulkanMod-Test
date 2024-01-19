@@ -5,16 +5,12 @@ import net.vulkanmod.render.chunk.ChunkArea;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public record AreaSetQueue(int size, int[] set, StaticQueue<ChunkArea> queue)
-{
+public record AreaSetQueue(int size, int[] set, StaticQueue<ChunkArea> queue) {
 
     public AreaSetQueue(int size) {
-        this(size, new int[(int) Math.ceil((float)size / 64)], new StaticQueue<>(size));
+        this(size, new int[(int) Math.ceil((float) size / 64)], new StaticQueue<>(size));
     }
 
-    /**
-     * Optimizes `add` method by using bit twiddling and pre-calculating the `i` value.
-     */
     public void add(ChunkArea chunkArea) {
         if (chunkArea.index() >= this.size)
             throw new IndexOutOfBoundsException();
@@ -26,11 +22,8 @@ public record AreaSetQueue(int size, int[] set, StaticQueue<ChunkArea> queue)
         }
     }
 
-    /**
-     * Optimizes `clear` method by directly assigning a new zero-filled array to `set`.
-     */
     public void clear() {
-        this.set = new int[this.size >> 6];
+        Arrays.fill(this.set, 0);  // Clear the existing array instead of reassignment
         this.queue.clear();
     }
 
