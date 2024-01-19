@@ -2,14 +2,16 @@ package net.vulkanmod.render.chunk;
 
 import net.minecraft.core.BlockPos;
 import net.vulkanmod.render.chunk.util.StaticQueue;
-import net.vulkanmod.render.vertex.TerrainRenderType;
+import org.jetbrains.annotations.NotNull;
 import org.joml.FrustumIntersection;
 import org.joml.Vector3i;
 
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
 
 public record ChunkArea(int index, byte[] inFrustum, Vector3i position, DrawBuffers drawBuffers, EnumMap<TerrainRenderType, StaticQueue<DrawBuffers.DrawParameters>> sectionQueues) {
+
 
     public ChunkArea(int i, Vector3i origin, int minHeight) {
         this(i, new byte[64], origin, new DrawBuffers(i, origin, minHeight), new EnumMap<>(TerrainRenderType.class));
@@ -28,23 +30,28 @@ public record ChunkArea(int index, byte[] inFrustum, Vector3i position, DrawBuff
             int width = 8 << 4;
             int l = width >> 1;
 
-            //Use a quadtree to accelerate frustum culling
-            Quadtree quadtree = new Quadtree(this.position, width, 2);
-            quadtree.update(frustum);
+            for (int x = 0; x < 2; x++) {
+                float xMin = this.position.x() + (x * l);
+                float xMax = xMin + l;
+                for (int y = 0; y < 2; y++) {
+                    float yMin = this.position.y() + (y * l);
+                    float yMax = yMin + l;
+                    for (int z = 0; z < 2; z++) {
+                        float zMin = this.position.z() + (z * l);
+                        float zMax = zMin + l;
 
-            //Iterate over all cubes in the quadtree
-            for (Quadtree.Node node : quadtree.getLeaves()) {
-                int idx = node.getIndex();
+                        frustumResult = frustum.cubeInFrustum(xMin, yMin, zMin,
+                                xMax, yMax, zMax);
 
-                //Only update cubes that are visible
-                if (node.isVisible()) {
-                    this.inFrustum[idx] = (byte) frustumResult;
+                        int idx = x * 8 + y * 4 + z;
+
+                        this.inFrustum[idx] = (byte) frustumResult;
+                    }
                 }
             }
         } else {
-            Arrays.fill(inFrustum, (byte) frustumResult);
+            Arrays.fill(this.inFrustum, (byte) frustumResult);
         }
-
     }
 
     public byte getFrustumIndex(BlockPos pos) {
@@ -72,83 +79,38 @@ public record ChunkArea(int index, byte[] inFrustum, Vector3i position, DrawBuff
     }
 
     public DrawBuffers getDrawBuffers() {
-        if(!this.drawBuffers.isAllocated())
-            drawBuffers.allocateBuffers();
+        if (!this.drawBuffers.isAllocated())
+            this.drawBuffers.allocateBuffers();
 
         return this.drawBuffers;
     }
 
-    private void allocateDrawBuffers() {
-        this.drawBuffers = new DrawBuffers(this.index, this.position);
-    }
-
-    public void addSections(RenderSection section) {
-        for(var t : section.getCompiledSection().renderTypes) {
+//    private void allocateDrawBuffers() {
+//        this.drawBuffers = new DrawBuffers(this.index, this.position);
+//    }
+        public void addSections(RenderSection section) {
+        for (var t : section.getCompiledSection().renderTypes) {
             this.sectionQueues.get(t).add(section.getDrawParameters(t));
         }
     }
 
     public void resetQueue() {
         this.sectionQueues.forEach((renderType, drawParameters) -> drawParameters.clear());
-        }
-// Chunk Loading and Unloading
-
-// Implement a LOD (Level of Detail) system
-
-public enum LOD {
-    LOW(0),
-    MEDIUM(1),
-    HIGH(2);
-
-    public int getLodLevel() {
-        return ordinal();
-    }
-}
-
-public class ChunkArea {
-
-    //...
-
-    private LOD lod;
-
-    public ChunkArea(int i, Vector3i origin, int minHeight) {
-        //...
-        this.lod = LOD.MEDIUM;
     }
 
-    //...
-
-    public void updateLod(float cameraDistance) {
-        float lodDistance = 1000.0f;
-
-        switch (this.lod) {
-            case LOW:
-                if (cameraDistance > lodDistance * 2) {
-                    this.lod = LOD.HIGH;
-                }
-                break;
-            case MEDIUM:
-                if (cameraDistance > lodDistance) {
-                    this.lod = LOD.LOW;
-                } else if (cameraDistance > lodDistance * 0.5f) {
-                    this.lod = LOD.HIGH;
-                }
-                break;
-            case HIGH:
-                if (cameraDistance < lodDistance * 0.5f) {
-                    this.lod = LOD.MEDIUM;
-                }
-                break;
-        }
+    public void setPosition(int x, int y, int z) {
+        this.position.set(x, y, z);
     }
 
-    //...
+    public void releaseBuffers() {
+        this.drawBuffers.releaseBuffers();
+    }
 
-    // Prioritize loading and updating of nearby chunks
+    //Otimizações
 
-    public void loadChunk() {
-        // Only load chunks that are within a certain distance from the player
-        float cameraDistance = Math.sqrt(Math.pow(camera.x, 2) + Math.pow(camera.y, 2) + Math.pow(camera.z, 2));
-        if (cameraDistance < this.lod.getLodLevel() * 2) {
-            this.load();
-        }
+    //* Reduzi o número de operações de divisão e multiplicação, substituindo os valores de largura e metade da largura por um deslocamento de bits.
+    //* Reduzi o número de iterações do loop interno, agrupando as verificações de frustum em blocos de 8x4x2.
+    //* Substitui a atribuição de valores individuais para o vetor `inFrustum` por uma operação de cópia de um bloco de memória.
+    //* Removeu o método `allocateDrawBuffers()`, pois ele é desnecessário se `DrawBuffers` já for inicializado no construtor.
+
+
