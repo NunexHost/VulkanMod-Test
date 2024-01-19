@@ -2,13 +2,14 @@ package net.vulkanmod.vulkan.memory;
 
 import net.vulkanmod.vulkan.*;
 import net.vulkanmod.vulkan.queue.CommandPool;
-import static net.vulkanmod.vulkan.queue.Queue.TransferQueue;
 import net.vulkanmod.vulkan.util.VUtil;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.vulkanmod.vulkan.Vulkan.getSwapChain;
+import static net.vulkanmod.vulkan.queue.Queue.TransferQueue;
 import static net.vulkanmod.vulkan.util.VUtil.align;
 import static org.lwjgl.vulkan.VK10.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 
@@ -19,8 +20,8 @@ public class UniformBuffers {
 
     private List<UniformBuffer> uniformBuffers;
 
-    private final static int minOffset = (int) DeviceManager.deviceProperties.limits().minUniformBufferOffsetAlignment();
-    private final int framesSize = Renderer.getFramesNum();
+    private final static int minOffset = (int) Device.deviceProperties.limits().minUniformBufferOffsetAlignment();
+    private final int framesSize = getSwapChain().getFramesNum();
 
     CommandPool.CommandBuffer commandBuffer;
 
@@ -82,7 +83,7 @@ public class UniformBuffers {
         if(commandBuffer == null)
             return;
 
-        DeviceManager.getTransferQueue().submitCommands(commandBuffer);
+        Device.getTransferQueue().submitCommands(commandBuffer);
         Synchronization.INSTANCE.addCommandBuffer(commandBuffer);
         commandBuffer = null;
     }
@@ -112,7 +113,7 @@ public class UniformBuffers {
     public class UniformBuffer extends Buffer {
 
         protected UniformBuffer(int size, MemoryType memoryType) {
-            super(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, memoryType, size);
+            super(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, memoryType);
             this.createBuffer(size);
         }
 
@@ -122,14 +123,14 @@ public class UniformBuffers {
             }
             else {
                 if(commandBuffer == null)
-                    commandBuffer = DeviceManager.getTransferQueue().beginCommands();
+                    commandBuffer = Device.getTransferQueue().beginCommands();
 
                 int size = buffer.remaining();
 
                 StagingBuffer stagingBuffer = Vulkan.getStagingBuffer();
                 stagingBuffer.copyBuffer(size, buffer);
 
-                TransferQueue.uploadBufferCmd(commandBuffer.getHandle(), stagingBuffer.id, stagingBuffer.offset, this.id, offset, size);
+                TransferQueue.uploadBufferCmd(commandBuffer, stagingBuffer.id, stagingBuffer.offset, this.id, offset, size);
             }
         }
 
