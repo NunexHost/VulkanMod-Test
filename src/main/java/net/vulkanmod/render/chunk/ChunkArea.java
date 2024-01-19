@@ -105,6 +105,7 @@ public record ChunkArea(int index, byte[] inFrustum, Vector3i position, DrawBuff
     public void releaseBuffers() {
         this.drawBuffers.releaseBuffers();
     }
+}
 
     //Otimizações
 
