@@ -6,119 +6,152 @@ import java.util.Iterator;
 import java.util.function.Consumer;
 
 public class ResettableQueue<T> implements Iterable<T> {
-    T[] queue;
-    int position = 0;
-    int limit = 0;
-    int capacity;
 
+    /**
+     * The underlying array.
+     */
+    private T[] queue;
+
+    /**
+     * The index of the next element to be removed.
+     */
+    private int head;
+
+    /**
+     * The index of the last element added.
+     */
+    private int tail;
+
+    /**
+     * The capacity of the queue.
+     */
+    private int capacity;
+
+    /**
+     * Constructs a new queue with an initial capacity of 1024 elements.
+     */
     public ResettableQueue() {
         this(1024);
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Constructs a new queue with the specified initial capacity.
+     *
+     * @param initialCapacity The initial capacity of the queue.
+     */
     public ResettableQueue(int initialCapacity) {
         this.capacity = initialCapacity;
-
-        this.queue = (T[])(new Object[capacity]);
+        this.queue = (T[]) new Object[capacity];
     }
 
-    public boolean hasNext() {
-        return this.position < this.limit;
+    /**
+     * Returns whether the queue is empty.
+     *
+     * @return True if the queue is empty, false otherwise.
+     */
+    public boolean isEmpty() {
+        return head == tail;
     }
 
-    public T poll() {
-        T t = this.queue[position];
-        this.position++;
-
-        return t;
-    }
-
-    public void add(T t) {
-        if(t == null)
-            return;
-
-        if(limit == capacity) resize();
-        this.queue[limit] = t;
-
-        this.limit++;
-    }
-
-    @SuppressWarnings("unchecked")
-    private void resize() {
-        this.capacity *= 2;
-
-        T[] oldQueue = this.queue;
-        this.queue = (T[])(new Object[capacity]);
-
-        System.arraycopy(oldQueue, 0, this.queue, 0, oldQueue.length);
-    }
-
+    /**
+     * Returns the number of elements in the queue.
+     *
+     * @return The number of elements in the queue.
+     */
     public int size() {
-        return limit;
-    }
-    public int capacity() {
-        return capacity;
+        return tail - head;
     }
 
-    @SuppressWarnings("unchecked")
-    public void trim(int size)
-    {
-        if(size>=this.capacity) return;
-        this.capacity=size;
-
-        T[] oldQueue = this.queue;
-        this.queue = (T[])(new Object[capacity]);
-
-        System.arraycopy(oldQueue, 0, this.queue, 0, size);
-    }
-
-    public void clear() {
-        this.position = 0;
-        this.limit = 0;
-    }
-
-    public Iterator<T> iterator(boolean reverseOrder) {
-        return reverseOrder ? new Iterator<>() {
-            int pos = ResettableQueue.this.limit - 1;
-            final int limit = -1;
-
-            @Override
-            public boolean hasNext() {
-                return pos > limit;
-            }
-
-            @Override
-            public T next() {
-                return queue[pos--];
-            }
+    /**
+     * Returns the next element in the queue without removing it.
+     *
+     * @return The next element in the queue.
+     */
+    public T peek() {
+        if (isEmpty()) {
+            return null;
         }
-                : new Iterator<>() {
-            int pos = 0;
-            final int limit = ResettableQueue.this.limit;
+        return queue[head];
+    }
+
+    /**
+     * Removes and returns the next element in the queue.
+     *
+     * @return The next element in the queue.
+     */
+    public T poll() {
+        if (isEmpty()) {
+            return null;
+        }
+        T element = queue[head];
+        queue[head] = null;
+        head = (head + 1) % capacity;
+        return element;
+    }
+
+    /**
+     * Adds an element to the end of the queue.
+     *
+     * @param element The element to add.
+     */
+    public void add(T element) {
+        if (element == null) {
+            return;
+        }
+        if (tail == capacity) {
+            grow();
+        }
+        queue[tail] = element;
+        tail = (tail + 1) % capacity;
+    }
+
+    /**
+     * Clears the queue.
+     */
+    public void clear() {
+        head = 0;
+        tail = 0;
+        for (int i = 0; i < capacity; i++) {
+            queue[i] = null;
+        }
+    }
+
+    /**
+     * Returns an iterator for the queue.
+     *
+     * @return An iterator for the queue.
+     */
+    @NotNull
+    @Override
+    public Iterator<T> iterator() {
+        return new Iterator<T>() {
+
+            int pos = head;
 
             @Override
             public boolean hasNext() {
-                return pos < limit;
+                return pos != tail;
             }
 
             @Override
             public T next() {
-                return queue[pos++];
+                T element = queue[pos];
+                pos = (pos + 1) % capacity;
+                return element;
             }
         };
     }
 
-    @NotNull
-    @Override
-    public Iterator<T> iterator() {
-        return iterator(false);
-    }
-
-    @Override
-    public void forEach(Consumer<? super T> action) {
-        for(int i = 0; i < this.limit; ++i) {
-            action.accept(this.queue[i]);
-        }
-
+    /**
+     * Grows the capacity of the queue by a factor of 1.5.
+     */
+    private void grow() {
+        capacity *= 1.5;
+        T[] newQueue = (T[]) new Object[capacity];
+        System.arraycopy(queue, head, newQueue, 0, tail - head);
+        System.arraycopy(queue, 0, newQueue, tail - head, head);
+        queue = newQueue;
+        head = 0;
+        tail = size();
     }
 }
