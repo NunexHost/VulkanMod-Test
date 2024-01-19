@@ -24,20 +24,20 @@ public class AutoIndexBuffer {
         switch (drawType) {
             case QUADS -> {
                 size = vertexCount * 3 / 2 * IndexBuffer.IndexType.SHORT.size;
-                buffer = genQuadIdxs(vertexCount);
+                buffer = directAlloc(size);
             }
             case TRIANGLE_FAN -> {
                 size = (vertexCount - 2) * 3 * IndexBuffer.IndexType.SHORT.size;
-                buffer = genTriangleFanIdxs(vertexCount);
+                buffer = directAlloc(size);
             }
             case TRIANGLE_STRIP -> {
                 size = (vertexCount - 2) * 3 * IndexBuffer.IndexType.SHORT.size;
-                buffer = genTriangleStripIdxs(vertexCount);
+                buffer = directAlloc(size);
             }
             default -> throw new RuntimeException("unknown drawType");
         }
 
-        indexBuffer = new IndexBuffer(size, MemoryTypes.GPU_MEM);
+        indexBuffer = new IndexBuffer(buffer, MemoryTypes.GPU_MEM);
         indexBuffer.copyBuffer(buffer);
 
         MemoryUtil.memFree(buffer);
@@ -51,17 +51,22 @@ public class AutoIndexBuffer {
             //TODO: free old
             //Can't know when VBO will stop using it
             indexBuffer.freeBuffer();
-            createIndexBuffer(newVertexCount);
+
+            // Reallocate with pre-calculated indices
+            buffer = precalculatedIndices(newVertexCount);
+            indexBuffer = new IndexBuffer(buffer, MemoryTypes.GPU_MEM);
+            indexBuffer.copyBuffer(buffer);
+
+            MemoryUtil.memFree(buffer);
         }
     }
 
-    public static ByteBuffer genQuadIdxs(int vertexCount) {
+    private static ByteBuffer precalculatedIndices(int vertexCount) {
         //short[] idxs = {0, 1, 2, 0, 2, 3};
 
         int indexCount = vertexCount * 3 / 2;
-        ByteBuffer buffer = MemoryUtil.memAlloc(indexCount * Short.BYTES);
+        ByteBuffer buffer = directAlloc(indexCount * Short.BYTES);
         ShortBuffer idxs = buffer.asShortBuffer();
-        //short[] idxs = new short[indexCount];
 
         int j = 0;
         for(int i = 0; i < vertexCount; i += 4) {
@@ -77,57 +82,10 @@ public class AutoIndexBuffer {
         }
 
         return buffer;
-        //this.type.copyIndexBuffer(this, bufferSize, idxs);
     }
 
-    public static ByteBuffer genTriangleFanIdxs(int vertexCount) {
-        int indexCount = (vertexCount - 2) * 3;
-        ByteBuffer buffer = MemoryUtil.memAlloc(indexCount * Short.BYTES);
-        ShortBuffer idxs = buffer.asShortBuffer();
-
-        //short[] idxs = byteBuffer.asShortBuffer().array();
-
-        int j = 0;
-        for (int i = 0; i < vertexCount - 2; ++i) {
-//            idxs[j] = 0;
-//            idxs[j + 1] = (short) (i + 1);
-//            idxs[j + 2] = (short) (i + 2);
-
-            idxs.put(j, (short) 0);
-            idxs.put(j + 1, (short) (i + 1));
-            idxs.put(j + 2, (short) (i + 2));
-
-            j += 3;
-        }
-
-        buffer.rewind();
-        return buffer;
-    }
-
-    public static ByteBuffer genTriangleStripIdxs(int vertexCount) {
-        int indexCount = (vertexCount - 2) * 3;
-
-        //TODO: free buffer
-        ByteBuffer buffer = MemoryUtil.memAlloc(indexCount * Short.BYTES);
-        ShortBuffer idxs = buffer.asShortBuffer();
-
-        //short[] idxs = byteBuffer.asShortBuffer().array();
-
-        int j = 0;
-        for (int i = 0; i < vertexCount - 2; ++i) {
-//            idxs[j] = 0;
-//            idxs[j + 1] = (short) (i + 1);
-//            idxs[j + 2] = (short) (i + 2);
-
-            idxs.put(j, (short) i);
-            idxs.put(j + 1, (short) (i + 1));
-            idxs.put(j + 2, (short) (i + 2));
-
-            j += 3;
-        }
-
-        buffer.rewind();
-        return buffer;
+    private static ByteBuffer directAlloc(int size) {
+        return MemoryUtil.memAlloc(size, MemoryType.HOST_VISIBLE, MemoryType.HOST_COHERENT);
     }
 
     public IndexBuffer getIndexBuffer() { return indexBuffer; }
