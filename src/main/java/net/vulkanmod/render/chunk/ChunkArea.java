@@ -153,6 +153,6 @@ public class ChunkArea {
             this.load();
         }
     }
-
+}
     //...
 }
