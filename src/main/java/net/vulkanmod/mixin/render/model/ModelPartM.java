@@ -50,12 +50,12 @@ public class ModelPartM {
 //                float l = vector3f.x();
 //                float m = vector3f.y();
 //                float n = vector3f.z();
-                int packedNormal = VertexUtil.packNormal(vector3f.x(), vector3f.y(), vector3f.z());
+//                int packedNormal = VertexUtil.packNormal(vector3f.x(), vector3f.y(), vector3f.z());
 
 //                ModelPart.Vertex[] vertices = polygon.vertices;
 //                int var20 = vertices.length;
 
-                for (ModelPart.Vertex vertex : vertices) {
+//                for (ModelPart.Vertex vertex : vertices) {
 //                    float o = vertex.pos.x() / 16.0F;
 //                    float p = vertex.pos.y() / 16.0F;
 //                    float q = vertex.pos.z() / 16.0F;
