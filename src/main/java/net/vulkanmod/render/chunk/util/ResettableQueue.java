@@ -125,8 +125,8 @@ public class ResettableQueue<T> implements Iterable<T> {
             this.queue = queue;
         }
 
-        @Override
-        public boolean hasNext() {
+//        @Override
+//        public boolean hasNext() {
   //          return position >= 0;
 //        }
 
@@ -137,5 +137,5 @@ public class ResettableQueue<T> implements Iterable<T> {
 
 //            return t;
 //        }
-    }
+ //   }
  //                     }
