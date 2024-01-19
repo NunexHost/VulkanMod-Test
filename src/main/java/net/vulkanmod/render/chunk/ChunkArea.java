@@ -23,7 +23,8 @@ public record ChunkArea(int index, byte[] inFrustum, Vector3i position, DrawBuff
 
     public void updateFrustum(VFrustum frustum) {
         //TODO: maybe move to an aux class
-        frustum.intersectChunk(this.position.x(), this.position.y(), this.position.z(), this.inFrustum);
+        frustum.cubeInFrustum(this.position.x(), this.position.y(), this.position.z(),
+                this.position.x() + (8 << 4) , this.position.y() + (8 << 4), this.position.z() + (8 << 4));
     }
 
     public byte getFrustumIndex(BlockPos pos) {
