@@ -34,38 +34,37 @@ public class ResettableQueue<T> implements Iterable<T> {
     }
 
     public void add(T t) {
-        if (t == null) {
+        if(t == null)
             return;
-        }
 
-        if (limit == capacity) {
-            capacity *= 1.75;
-
-            T[] oldQueue = this.queue;
-            this.queue = (T[])(new Object[capacity]);
-
-            System.arraycopy(oldQueue, 0, this.queue, 0, oldQueue.length);
-        }
-
+        if(limit == capacity) resize();
         this.queue[limit] = t;
 
         this.limit++;
     }
 
+    @SuppressWarnings("unchecked")
+    private void resize() {
+        this.capacity *= 2;
+
+        T[] oldQueue = this.queue;
+        this.queue = (T[])(new Object[capacity]);
+
+        System.arraycopy(oldQueue, 0, this.queue, 0, oldQueue.length);
+    }
+
     public int size() {
         return limit;
     }
-
     public int capacity() {
         return capacity;
     }
 
-    public void trim(int size) {
-        if (size >= this.capacity) {
-            return;
-        }
-
-        capacity = size;
+    @SuppressWarnings("unchecked")
+    public void trim(int size)
+    {
+        if(size>=this.capacity) return;
+        this.capacity=size;
 
         T[] oldQueue = this.queue;
         this.queue = (T[])(new Object[capacity]);
@@ -79,7 +78,34 @@ public class ResettableQueue<T> implements Iterable<T> {
     }
 
     public Iterator<T> iterator(boolean reverseOrder) {
-        return reverseOrder ? new ReverseIterator<>(this.queue) : new ForwardIterator<>(this.queue);
+        return reverseOrder ? new Iterator<>() {
+            int pos = ResettableQueue.this.limit - 1;
+            final int limit = -1;
+
+            @Override
+            public boolean hasNext() {
+                return pos > limit;
+            }
+
+            @Override
+            public T next() {
+                return queue[pos--];
+            }
+        }
+                : new Iterator<>() {
+            int pos = 0;
+            final int limit = ResettableQueue.this.limit;
+
+            @Override
+            public boolean hasNext() {
+                return pos < limit;
+            }
+
+            @Override
+            public T next() {
+                return queue[pos++];
+            }
+        };
     }
 
     @NotNull
@@ -90,52 +116,9 @@ public class ResettableQueue<T> implements Iterable<T> {
 
     @Override
     public void forEach(Consumer<? super T> action) {
-        for (int i = 0; i < this.limit; ++i) {
+        for(int i = 0; i < this.limit; ++i) {
             action.accept(this.queue[i]);
         }
+
     }
-
-    private static class ForwardIterator<T> implements Iterator<T> {
-        private final T[] queue;
-        private int position = 0;
-
-        public ForwardIterator(T[] queue) {
-            this.queue = queue;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return position < queue.length;
-        }
-
-        @Override
-        public T next() {
-            T t = queue[position];
-            position++;
-
-            return t;
-        }
-    }
-
-    private static class ReverseIterator<T> implements Iterator<T> {
-        private final T[] queue;
-//        private int position = queue.length - 1;
-
-        public ReverseIterator(T[] queue) {
-            this.queue = queue;
-        }
-
-//        @Override
-//        public boolean hasNext() {
-  //          return position >= 0;
-//        }
-
-//        @Override
- //       public T next() {
- //           T t = queue[position];
-//            position--;
-
-//            return t;
-//        }
- //   }
- //                     }
+}
