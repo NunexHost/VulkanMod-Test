@@ -127,13 +127,13 @@ public class ResettableQueue<T> implements Iterable<T> {
 
         @Override
         public boolean hasNext() {
-            return position >= 0;
+  //          return position >= 0;
         }
 
         @Override
         public T next() {
-            T t = queue[position];
-            position--;
+ //           T t = queue[position];
+//            position--;
 
             return t;
         }
