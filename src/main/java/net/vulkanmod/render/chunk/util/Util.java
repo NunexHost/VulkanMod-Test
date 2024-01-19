@@ -12,7 +12,7 @@ public class Util {
 
     public static final Direction[] DIRECTIONS = Direction.values();
 
-    private static final Direction[] XZ_DIRECTIONS = new Direction[]{
+    public static final Direction[] XZ_DIRECTIONS = new Direction[]{
         Direction.NORTH,
         Direction.SOUTH,
         Direction.EAST,
@@ -47,4 +47,8 @@ public class Util {
             return MemoryUtil.memSlice(src);
         }
     }
-}
+
+    public static Direction[] getXzDirections() {
+        return XZ_DIRECTIONS;
+    }
+    }
