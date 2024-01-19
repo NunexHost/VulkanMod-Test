@@ -21,6 +21,9 @@ public abstract class AlignedStruct {
             Field field = Field.createField(fieldInfo);
             this.fields.add(field);
         }
+
+        // Sort fields by size, from largest to smallest, to minimize padding
+        this.fields.sort(Field::compareSizes);
     }
 
     public void update(long ptr) {
@@ -45,27 +48,35 @@ public abstract class AlignedStruct {
         public void addFieldInfo(String type, String name, int count) {
             Field.FieldInfo fieldInfo = Field.createFieldInfo(type, name, count);
 
-            this.currentOffset = fieldInfo.computeAlignmentOffset(this.currentOffset);
-            this.currentOffset += fieldInfo.size;
-            this.fields.add(fieldInfo);
+            // Pre-compute alignment offset
+            fieldInfo.alignmentOffset = fieldInfo.computeAlignmentOffset(currentOffset);
+
+            // Update current offset
+            currentOffset = fieldInfo.alignmentOffset + fieldInfo.size;
+
+            fields.add(fieldInfo);
         }
 
         public void addFieldInfo(String type, String name) {
             Field.FieldInfo fieldInfo = Field.createFieldInfo(type, name);
 
-            this.currentOffset = fieldInfo.computeAlignmentOffset(this.currentOffset);
-            this.currentOffset += fieldInfo.size;
-            this.fields.add(fieldInfo);
+            // Pre-compute alignment offset
+            fieldInfo.alignmentOffset = fieldInfo.computeAlignmentOffset(currentOffset);
+
+            // Update current offset
+            currentOffset = fieldInfo.alignmentOffset + fieldInfo.size;
+
+            fields.add(fieldInfo);
         }
 
         public UBO buildUBO(int binding, int stages) {
             //offset is expressed in floats/ints
-            return new UBO(binding, stages, this.currentOffset * 4, this.fields);
+            return new UBO(binding, stages, currentOffset * 4, fields);
         }
 
         public PushConstants buildPushConstant() {
-            if(this.fields.isEmpty()) return null;
-            return new PushConstants(this.fields, this.currentOffset * 4);
+            if(fields.isEmpty()) return null;
+            return new PushConstants(fields, currentOffset * 4);
         }
 
     }
