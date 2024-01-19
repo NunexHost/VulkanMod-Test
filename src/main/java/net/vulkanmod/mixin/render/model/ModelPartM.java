@@ -40,10 +40,10 @@ public class ModelPartM {
             ModelPartCubeMixed cubeMixed = (ModelPartCubeMixed)(cube);
             CubeModel cubeModel = cubeMixed.getCubeModel();
 
-            ModelPart.Polygon[] polygons = cubeModel.getPolygons();
+//            ModelPart.Polygon[] polygons = cubeModel.getPolygons();
 //            int var12 = polygons.length;
 
-            cubeModel.transformVertices(matrix4f);
+//            cubeModel.transformVertices(matrix4f);
 
             for (ModelPart.Polygon polygon : polygons) {
                 Vector3f vector3f = matrix3f.transform(new Vector3f(polygon.normal));
