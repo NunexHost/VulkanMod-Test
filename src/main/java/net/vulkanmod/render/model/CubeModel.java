@@ -85,4 +85,5 @@ public class CubeModel {
             this.polygons[idx++] = new ModelPart.Polygon(new ModelPart.Vertex[]{vertex4, vertex3, vertex2, vertex1}, this.transformed[4].x, this.transformed[4].y, this.transformed[4].z, this.transformed[5].x, this.transformed[5].y, this.transformed[5].z, bl, Direction.UP);
         }
         
-    }
+     }
+}
