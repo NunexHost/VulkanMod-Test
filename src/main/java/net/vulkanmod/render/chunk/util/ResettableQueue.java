@@ -119,7 +119,7 @@ public class ResettableQueue<T> implements Iterable<T> {
 
     private static class ReverseIterator<T> implements Iterator<T> {
         private final T[] queue;
-        private int position = queue.length - 1;
+//        private int position = queue.length - 1;
 
         public ReverseIterator(T[] queue) {
             this.queue = queue;
