@@ -11,16 +11,23 @@ import java.nio.FloatBuffer;
 public class Util {
 
     public static final Direction[] DIRECTIONS = Direction.values();
+    public static final Direction[] XZ_DIRECTIONS = getXzDirections();
 
-    public static final Direction[] XZ_DIRECTIONS = new Direction[]{
-        Direction.NORTH,
-        Direction.SOUTH,
-        Direction.EAST,
-        Direction.WEST
-    };
+    private static Direction[] getXzDirections() {
+        Direction[] directions = new Direction[4];
+
+        int i = 0;
+        for(Direction direction : Direction.values()) {
+            if(direction.getAxis() == Direction.Axis.X || direction.getAxis() == Direction.Axis.Z) {
+                directions[i] = direction;
+                ++i;
+            }
+        }
+        return directions;
+    }
 
     public static long posLongHash(int x, int y, int z) {
-        return (long) x | ((long) z << 16) | ((long) y << 32);
+        return (long)x & 0x00000000FFFFL | ((long) z << 16) & 0x0000FFFF0000L | ((long) y << 32) & 0xFFFF00000000L;
     }
 
     public static int flooredLog(int v) {
@@ -28,7 +35,7 @@ public class Util {
         int log = 30;
         int t = 0x40000000;
 
-        while (t > v) {
+        while((v & t) == 0) {
             t >>= 1;
             log--;
         }
@@ -37,18 +44,13 @@ public class Util {
     }
 
     public static int align(int i, int alignment) {
-        return i + alignment - (i % alignment);
+        int r = i % alignment;
+        return r != 0 ? i + alignment - r : i;
     }
 
     public static ByteBuffer createCopy(ByteBuffer src) {
-        if (src.isDirect()) {
-            return src.duplicate();
-        } else {
-            return MemoryUtil.memSlice(src);
-        }
+        ByteBuffer ret = MemoryUtil.memAlloc(src.remaining());
+        MemoryUtil.memCopy(src, ret);
+        return ret;
     }
-
-    public static Direction[] getXzDirections() {
-        return XZ_DIRECTIONS;
-    }
-    }
+}
