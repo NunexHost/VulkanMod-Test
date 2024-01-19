@@ -123,6 +123,8 @@ public class ResettableQueue<T> implements Iterable<T> {
 
         public ReverseIterator(ResettableQueue<T> queue) {
             this.queue = queue;
+            this.queue = queue.queue; // Initialize 'queue' here
+            this.position = queue.limit - 1;
         }
 
         @Override
