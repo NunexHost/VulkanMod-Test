@@ -66,9 +66,9 @@ public class ModelPartM {
 //                    Vector4f vector4f = matrix4f.transform(new Vector4f(o, p, q, 1.0F));
 //                    vertexConsumer.vertex(vector4f.x(), vector4f.y(), vector4f.z(), r, g, b, a, vertex.u, vertex.v, j, i, l, m, n);
 
-                    Vector3f pos = vertex.pos;
+ //                   Vector3f pos = vertex.pos;
 //                    vertexConsumer.vertex(pos.x(), pos.y(), pos.z(), r, g, b, a, vertex.u, vertex.v, j, i, l, m, n);
-                    vertexBuilder.vertex(pos.x(), pos.y(), pos.z(), packedColor, vertex.u, vertex.v, j, i, packedNormal);
+//                    vertexBuilder.vertex(pos.x(), pos.y(), pos.z(), packedColor, vertex.u, vertex.v, j, i, packedNormal);
                 }
             }
 }
