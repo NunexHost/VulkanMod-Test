@@ -130,12 +130,12 @@ public class ResettableQueue<T> implements Iterable<T> {
   //          return position >= 0;
 //        }
 
-        @Override
-        public T next() {
+//        @Override
+ //       public T next() {
  //           T t = queue[position];
 //            position--;
 
 //            return t;
 //        }
     }
-                      }
+ //                     }
