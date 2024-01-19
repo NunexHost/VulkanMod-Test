@@ -79,7 +79,7 @@ public class ResettableQueue<T> implements Iterable<T> {
     }
 
     public Iterator<T> iterator(boolean reverseOrder) {
-        return reverseOrder ? new ReverseIterator<>(this) : new ForwardIterator<>(this);
+        return reverseOrder ? new ReverseIterator<>(this.queue) : new ForwardIterator<>(this.queue);
     }
 
     @NotNull
@@ -96,21 +96,21 @@ public class ResettableQueue<T> implements Iterable<T> {
     }
 
     private static class ForwardIterator<T> implements Iterator<T> {
-        private final ResettableQueue<T> queue;
+        private final T[] queue;
         private int position = 0;
 
-        public ForwardIterator(ResettableQueue<T> queue) {
+        public ForwardIterator(T[] queue) {
             this.queue = queue;
         }
 
         @Override
         public boolean hasNext() {
-            return position < queue.limit;
+            return position < queue.length;
         }
 
         @Override
         public T next() {
-            T t = queue.queue[position];
+            T t = queue[position];
             position++;
 
             return t;
@@ -118,13 +118,11 @@ public class ResettableQueue<T> implements Iterable<T> {
     }
 
     private static class ReverseIterator<T> implements Iterator<T> {
-        private final ResettableQueue<T> queue;
-        private int position = queue.limit - 1;
+        private final T[] queue;
+        private int position = queue.length - 1;
 
-        public ReverseIterator(ResettableQueue<T> queue) {
+        public ReverseIterator(T[] queue) {
             this.queue = queue;
-            this.queue = queue.queue; // Initialize 'queue' here
-            this.position = queue.limit - 1;
         }
 
         @Override
@@ -134,7 +132,7 @@ public class ResettableQueue<T> implements Iterable<T> {
 
         @Override
         public T next() {
-            T t = queue.queue[position];
+            T t = queue[position];
             position--;
 
             return t;
