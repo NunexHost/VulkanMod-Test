@@ -135,7 +135,7 @@ public class ResettableQueue<T> implements Iterable<T> {
  //           T t = queue[position];
 //            position--;
 
-            return t;
+//            return t;
         }
     }
                       }
