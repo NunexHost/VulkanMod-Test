@@ -13,19 +13,18 @@ public abstract class AlignedStruct {
     protected AlignedStruct(List<Field.FieldInfo> infoList, int size) {
         this.size = size;
 
-        if (infoList == null) return;
+        if(infoList == null)
+            return;
 
-        for (Field.FieldInfo fieldInfo : infoList) {
+        for(Field.FieldInfo fieldInfo : infoList) {
+
             Field field = Field.createField(fieldInfo);
             this.fields.add(field);
         }
-
-        // Sort fields by size (assuming compareSizes method exists)
-        this.fields.sort(Field::compareSizes);
     }
 
     public void update(long ptr) {
-        for (Field field : this.fields) {
+        for(Field field : this.fields) {
             field.update(ptr);
         }
     }
@@ -46,28 +45,27 @@ public abstract class AlignedStruct {
         public void addFieldInfo(String type, String name, int count) {
             Field.FieldInfo fieldInfo = Field.createFieldInfo(type, name, count);
 
-            // Pre-compute alignment offset (assuming alignmentOffset field is added)
-            fieldInfo.alignmentOffset = fieldInfo.computeAlignmentOffset(currentOffset);
-            currentOffset = fieldInfo.alignmentOffset + fieldInfo.size;
-            fields.add(fieldInfo);
+            this.currentOffset = fieldInfo.computeAlignmentOffset(this.currentOffset);
+            this.currentOffset += fieldInfo.size;
+            this.fields.add(fieldInfo);
         }
 
         public void addFieldInfo(String type, String name) {
             Field.FieldInfo fieldInfo = Field.createFieldInfo(type, name);
 
-            // Pre-compute alignment offset (assuming alignmentOffset field is added)
-            fieldInfo.alignmentOffset = fieldInfo.computeAlignmentOffset(currentOffset);
-            currentOffset = fieldInfo.alignmentOffset + fieldInfo.size;
-            fields.add(fieldInfo);
+            this.currentOffset = fieldInfo.computeAlignmentOffset(this.currentOffset);
+            this.currentOffset += fieldInfo.size;
+            this.fields.add(fieldInfo);
         }
 
         public UBO buildUBO(int binding, int stages) {
-            return new UBO(binding, stages, currentOffset * 4, fields);
+            //offset is expressed in floats/ints
+            return new UBO(binding, stages, this.currentOffset * 4, this.fields);
         }
 
         public PushConstants buildPushConstant() {
-            if (fields.isEmpty()) return null;
-            return new PushConstants(fields, currentOffset * 4);
+            if(this.fields.isEmpty()) return null;
+            return new PushConstants(this.fields, this.currentOffset * 4);
         }
 
     }
