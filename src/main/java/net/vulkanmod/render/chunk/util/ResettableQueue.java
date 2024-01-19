@@ -79,7 +79,7 @@ public class ResettableQueue<T> implements Iterable<T> {
     }
 
     public Iterator<T> iterator(boolean reverseOrder) {
-        return reverseOrder ? new ReverseIterator<>(this.queue) : new ForwardIterator<>(this.queue);
+        return reverseOrder ? new ReverseIterator<>(this) : new ForwardIterator<>(this);
     }
 
     @NotNull
