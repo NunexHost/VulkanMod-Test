@@ -40,22 +40,22 @@ public class ModelPartM {
             ModelPartCubeMixed cubeMixed = (ModelPartCubeMixed)(cube);
             CubeModel cubeModel = cubeMixed.getCubeModel();
 
-//            ModelPart.Polygon[] polygons = cubeModel.getPolygons();
+            ModelPart.Polygon[] polygons = cubeModel.getPolygons();
 //            int var12 = polygons.length;
 
-//            cubeModel.transformVertices(matrix4f);
+            cubeModel.transformVertices(matrix4f);
 
-//            for (ModelPart.Polygon polygon : polygons) {
-//                Vector3f vector3f = matrix3f.transform(new Vector3f(polygon.normal));
+            for (ModelPart.Polygon polygon : polygons) {
+                Vector3f vector3f = matrix3f.transform(new Vector3f(polygon.normal));
 //                float l = vector3f.x();
 //                float m = vector3f.y();
 //                float n = vector3f.z();
-//                int packedNormal = VertexUtil.packNormal(vector3f.x(), vector3f.y(), vector3f.z());
+                int packedNormal = VertexUtil.packNormal(vector3f.x(), vector3f.y(), vector3f.z());
 
-//                ModelPart.Vertex[] vertices = polygon.vertices;
+                ModelPart.Vertex[] vertices = polygon.vertices;
 //                int var20 = vertices.length;
 
-//                for (ModelPart.Vertex vertex : vertices) {
+                for (ModelPart.Vertex vertex : vertices) {
 //                    float o = vertex.pos.x() / 16.0F;
 //                    float p = vertex.pos.y() / 16.0F;
 //                    float q = vertex.pos.z() / 16.0F;
@@ -66,9 +66,12 @@ public class ModelPartM {
 //                    Vector4f vector4f = matrix4f.transform(new Vector4f(o, p, q, 1.0F));
 //                    vertexConsumer.vertex(vector4f.x(), vector4f.y(), vector4f.z(), r, g, b, a, vertex.u, vertex.v, j, i, l, m, n);
 
- //                   Vector3f pos = vertex.pos;
+                    Vector3f pos = vertex.pos;
 //                    vertexConsumer.vertex(pos.x(), pos.y(), pos.z(), r, g, b, a, vertex.u, vertex.v, j, i, l, m, n);
-//                    vertexBuilder.vertex(pos.x(), pos.y(), pos.z(), packedColor, vertex.u, vertex.v, j, i, packedNormal);
+                    vertexBuilder.vertex(pos.x(), pos.y(), pos.z(), packedColor, vertex.u, vertex.v, j, i, packedNormal);
                 }
             }
+        }
+
+    }
 }
