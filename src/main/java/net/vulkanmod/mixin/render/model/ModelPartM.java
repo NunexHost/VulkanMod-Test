@@ -45,7 +45,7 @@ public class ModelPartM {
 
 //            cubeModel.transformVertices(matrix4f);
 
-            for (ModelPart.Polygon polygon : polygons) {
+//            for (ModelPart.Polygon polygon : polygons) {
                 Vector3f vector3f = matrix3f.transform(new Vector3f(polygon.normal));
 //                float l = vector3f.x();
 //                float m = vector3f.y();
