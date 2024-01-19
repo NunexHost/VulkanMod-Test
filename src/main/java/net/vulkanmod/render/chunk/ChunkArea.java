@@ -152,4 +152,3 @@ public class ChunkArea {
         if (cameraDistance < this.lod.getLodLevel() * 2) {
             this.load();
         }
-    }
