@@ -46,13 +46,13 @@ public class ModelPartM {
 //            cubeModel.transformVertices(matrix4f);
 
 //            for (ModelPart.Polygon polygon : polygons) {
-                Vector3f vector3f = matrix3f.transform(new Vector3f(polygon.normal));
+//                Vector3f vector3f = matrix3f.transform(new Vector3f(polygon.normal));
 //                float l = vector3f.x();
 //                float m = vector3f.y();
 //                float n = vector3f.z();
                 int packedNormal = VertexUtil.packNormal(vector3f.x(), vector3f.y(), vector3f.z());
 
-                ModelPart.Vertex[] vertices = polygon.vertices;
+//                ModelPart.Vertex[] vertices = polygon.vertices;
 //                int var20 = vertices.length;
 
                 for (ModelPart.Vertex vertex : vertices) {
