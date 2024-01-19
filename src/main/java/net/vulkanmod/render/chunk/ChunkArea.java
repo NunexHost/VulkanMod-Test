@@ -31,28 +31,58 @@ public record ChunkArea(int index, byte[] inFrustum, Vector3i position, DrawBuff
             int width = 8 << 4;
             int l = width >> 1;
 
-            for (int x = 0; x < 2; x++) {
-                float xMin = this.position.x() + (x * l);
+            for(int x1 = 0; x1 < 2; x1++) {
+                float xMin = this.position.x() + (x1 * l);
                 float xMax = xMin + l;
-                for (int y = 0; y < 2; y++) {
-                    float yMin = this.position.y() + (y * l);
+                for(int y1 = 0; y1 < 2; y1++) {
+                    float yMin = this.position.y() + (y1 * l);
                     float yMax = yMin + l;
-                    for (int z = 0; z < 2; z++) {
-                        float zMin = this.position.z() + (z * l);
+                    for (int z1 = 0; z1 < 2; z1++) {
+                        float zMin = this.position.z() + (z1 * l);
                         float zMax = zMin + l;
 
                         frustumResult = frustum.cubeInFrustum(xMin, yMin, zMin,
-                                xMax, yMax, zMax);
+                                xMax , yMax, zMax);
 
-                        int idx = x * 8 + y * 4 + z;
+                        int beginIdx = (x1 << 5) + (y1 << 4) + (z1 << 3);
+                        if (frustumResult == FrustumIntersection.INTERSECT) {
+                            int l2 = width >> 2;
+                            for (int x2 = 0; x2 < 2; x2++) {
+                                float xMin2 = xMin + x2 * l2;
+                                float xMax2 = xMin2 + l2;
+                                for (int y2 = 0; y2 < 2; y2++) {
+                                    float yMin2 = yMin + y2 * l2;
+                                    float yMax2 = yMin2 + l2;
+                                    for (int z2 = 0; z2 < 2; z2++) {
+                                        float zMin2 = zMin + z2 * l2;
+                                        float zMax2 = zMin2 + l2;
 
-                        this.inFrustum[idx] = (byte) frustumResult;
+                                        frustumResult = frustum.cubeInFrustum(xMin2, yMin2, zMin2,
+                                                xMax2, yMax2, zMax2);
+
+                                        int idx = beginIdx + (x2 << 2) + (y2 << 1) + z2;
+
+                                        this.inFrustum[idx] = (byte) frustumResult;
+                                    }
+
+                                }
+                            }
+                        }
+                        else {
+                            int end = beginIdx + 8;
+
+                            for(int i = beginIdx; i < end; ++i) {
+                                this.inFrustum[i] = (byte) frustumResult;
+                            }
+                        }
+
                     }
                 }
             }
         } else {
-            Arrays.fill(this.inFrustum, (byte) frustumResult);
+            Arrays.fill(inFrustum, (byte) frustumResult);
         }
+
     }
 
     public byte getFrustumIndex(BlockPos pos) {
@@ -80,8 +110,8 @@ public record ChunkArea(int index, byte[] inFrustum, Vector3i position, DrawBuff
     }
 
     public DrawBuffers getDrawBuffers() {
-        if (!this.drawBuffers.isAllocated())
-            this.drawBuffers.allocateBuffers();
+        if(!this.drawBuffers.isAllocated())
+            drawBuffers.allocateBuffers();
 
         return this.drawBuffers;
     }
@@ -89,8 +119,9 @@ public record ChunkArea(int index, byte[] inFrustum, Vector3i position, DrawBuff
 //    private void allocateDrawBuffers() {
 //        this.drawBuffers = new DrawBuffers(this.index, this.position);
 //    }
-        public void addSections(RenderSection section) {
-        for (var t : section.getCompiledSection().renderTypes) {
+
+    public void addSections(RenderSection section) {
+        for(var t : section.getCompiledSection().renderTypes) {
             this.sectionQueues.get(t).add(section.getDrawParameters(t));
         }
     }
@@ -106,13 +137,4 @@ public record ChunkArea(int index, byte[] inFrustum, Vector3i position, DrawBuff
     public void releaseBuffers() {
         this.drawBuffers.releaseBuffers();
     }
-}
-
-    //Otimizações
-
-    //* Reduzi o número de operações de divisão e multiplicação, substituindo os valores de largura e metade da largura por um deslocamento de bits.
-    //* Reduzi o número de iterações do loop interno, agrupando as verificações de frustum em blocos de 8x4x2.
-    //* Substitui a atribuição de valores individuais para o vetor `inFrustum` por uma operação de cópia de um bloco de memória.
-    //* Removeu o método `allocateDrawBuffers()`, pois ele é desnecessário se `DrawBuffers` já for inicializado no construtor.
-
-
+                                    }
