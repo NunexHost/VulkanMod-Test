@@ -21,12 +21,14 @@ public class StagingBuffer extends Buffer {
 
     public void copyBuffer(int size, ByteBuffer byteBuffer) {
 
-        if(size > this.bufferSize - this.usedBytes) {
-            resizeBuffer(this.bufferSize * 1.5f);
+        if (size > this.bufferSize - this.usedBytes) {
+            // Ensure integer calculation for resizing
+            resizeBuffer((int) (this.bufferSize * 1.5));
         }
 
-        // Use `MemoryUtil.memCopy` for improved performance
-        MemoryUtil.memCopy(this.data.getByteBuffer(0, this.bufferSize), byteBuffer, size);
+        // Use the correct memCopy method
+        MemoryUtil.memCopy(MemoryUtil.memAddress(this.data.getByteBuffer(0, this.bufferSize)),
+                           MemoryUtil.memAddress(byteBuffer), size);
 
         offset = usedBytes;
         usedBytes += size;
