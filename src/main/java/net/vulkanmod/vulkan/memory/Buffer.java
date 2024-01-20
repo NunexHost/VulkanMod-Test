@@ -18,14 +18,13 @@ public abstract class Buffer {
         //TODO: check usage
         this.usage = usage;
         this.type = type;
-
     }
 
     protected void createBuffer(int bufferSize) {
         this.type.createBuffer(this, bufferSize);
 
         if(this.type.mappable()) {
-            this.data = MemoryManager.getInstance().Map(this.allocation);
+            this.data = MemoryManager.getInstance().map(this.allocation);
         }
     }
 
@@ -51,7 +50,9 @@ public abstract class Buffer {
 
     protected void setAllocation(long allocation) {this.allocation = allocation; }
 
-    public BufferInfo getBufferInfo() { return new BufferInfo(this.id, this.allocation, this.bufferSize, this.type.getType()); }
+    public BufferInfo getBufferInfo() {
+        return new BufferInfo(this.id, this.allocation, this.bufferSize, this.type.getType());
+    }
 
     public record BufferInfo(long id, long allocation, long bufferSize, MemoryType.Type type) {
 
