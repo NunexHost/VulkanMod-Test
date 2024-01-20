@@ -8,6 +8,8 @@ import static org.lwjgl.vulkan.VK10.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
 public class VertexBuffer extends Buffer {
 
+    private long handle;
+
     public VertexBuffer(int size) {
         this(size, MemoryTypes.HOST_MEM);
     }
@@ -18,6 +20,15 @@ public class VertexBuffer extends Buffer {
         this.bufferSize = size;
         this.usedBytes = 0;
         this.offset = 0;
+
+        // Retrieve the handle after buffer creation
+        this.handle = retrieveHandle();
+    }
+
+    // Assume this method exists in the Buffer class or is implemented here
+    protected long retrieveHandle() {
+        // Implement logic to retrieve the buffer handle
+        return device.getBuffer(this).getHandle();
     }
 
     public void copyToVertexBuffer(long vertexSize, long vertexCount, ByteBuffer byteBuffer) {
@@ -27,8 +38,8 @@ public class VertexBuffer extends Buffer {
             resizeBuffer(this.bufferSize + bufferSize);
         }
 
-        // Access the handle directly, assuming it's available in the Buffer class
-        this.type.copyToBuffer(this.handle, (long)bufferSize, byteBuffer);
+        // Access the handle after retrieval
+        this.type.copyToBuffer(handle, (long)bufferSize, byteBuffer);
         this.offset += bufferSize;
     }
 
@@ -40,9 +51,9 @@ public class VertexBuffer extends Buffer {
 
     public void destroy() {
         MemoryManager.getInstance().addToFreeable(this);
-        // Handle cleanup within the VertexBuffer class if the superclass doesn't have a destroy() method
         try {
             // Perform necessary cleanup actions here, such as releasing resources
+            device.freeBuffer(this);
         } catch (Exception e) {
             // Handle any exceptions that may occur during cleanup
             System.err.println("Error during VertexBuffer cleanup: " + e.getMessage());
