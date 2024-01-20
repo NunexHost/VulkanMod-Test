@@ -1,3 +1,13 @@
+package net.vulkanmod.mixin.render;
+
+import net.vulkanmod.vulkan.Vulkan;
+import org.lwjgl.vulkan.VK10;
+
+@Overwrite(reason = "Custom blending implementation")
+public static void blendFuncSeparate(int srcFactorRGB, int dstFactorRGB, int srcFactorAlpha, int dstFactorAlpha) {
+    Vulkan.getDevice().cmdBlendFuncSeparate(0, srcFactorRGB, dstFactorRGB, srcFactorAlpha, dstFactorAlpha);
+}
+
 package net.vulkanmod.vulkan.queue;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -51,15 +61,12 @@ public class CommandPool {
 
                 VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.calloc(stack);
                 allocInfo.sType$Default();
-                allocInfo.level(VK_COMMAND_BUFFER_LEVEL_SECONDARY);
+                allocInfo.level(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
                 allocInfo.commandPool(id);
                 allocInfo.commandBufferCount(size);
 
                 PointerBuffer pCommandBuffer = stack.mallocPointer(size);
                 vkAllocateCommandBuffers(Vulkan.getDevice(), allocInfo, pCommandBuffer);
-
-                VkFenceCreateInfo fenceInfo = VkFenceCreateInfo.calloc(stack);
-                fenceInfo.sType$Default();
 
                 for(int i = 0; i < size; ++i) {
 
@@ -93,22 +100,19 @@ public class CommandPool {
             if (commandBuffer.isTransfer()) {
                 fence = vkQueueSubmit(queue, commandBuffer.getSubmitInfo(), fence);
             } else {
-                vkWaitForFences(Vulkan.getDevice(), commandBuffer.getFence(), true, 0, null);
+                vkWaitForFences(Vulkan.getDevice(), commandBuffer.getFence(), true, 0);
                 commandBuffer.reset();
             }
 
             return fence;
+            
         }
     }
 
-    public void addToAvailable(CommandBuffer commandBuffer) {
-        this.availableCmdBuffers.add(commandBuffer);
-    }
-
-    public void cleanUp() {
+        public void cleanUp() {
         for(CommandBuffer commandBuffer : commandBuffers) {
             if (commandBuffer.isTransfer()) {
-                vkWaitForFences(Vulkan.getDevice(), commandBuffer.getFence(), true, 0, null);
+                vkWaitForFences(Vulkan.getDevice(), commandBuffer.getFence(), true, 0);
             }
             vkDestroyFence(Vulkan.getDevice(), commandBuffer.getFence(), null);
         }
@@ -164,4 +168,4 @@ public class CommandPool {
             return (handle.getCommandBufferLevel() == VK_COMMAND_BUFFER_LEVEL_PRIMARY) && ((handle.getCommandBufferUsageFlags() & VK_COMMAND_BUFFER_USAGE_TRANSFER_BIT) != 0);
         }
     }
-}
+    
