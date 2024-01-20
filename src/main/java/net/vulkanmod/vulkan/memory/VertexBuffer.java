@@ -27,7 +27,8 @@ public class VertexBuffer extends Buffer {
             resizeBuffer(this.bufferSize + bufferSize);
         }
 
-        this.type.copyToBuffer(this, bufferSize, byteBuffer, this.offset);
+        // Correct method call with appropriate arguments
+        this.type.copyToBuffer(this, (long)bufferSize, byteBuffer, this.offset);
         this.offset += bufferSize;
     }
 
@@ -37,8 +38,8 @@ public class VertexBuffer extends Buffer {
         this.bufferSize = newSize;
     }
 
-    @Override
     public void destroy() {
+        // Remove @Override annotation
         MemoryManager.getInstance().addToFreeable(this);
         super.destroy();
     }
