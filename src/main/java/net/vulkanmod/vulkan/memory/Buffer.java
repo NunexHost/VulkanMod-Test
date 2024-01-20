@@ -23,32 +23,50 @@ public abstract class Buffer {
     protected void createBuffer(int bufferSize) {
         this.type.createBuffer(this, bufferSize);
 
-        if(this.type.mappable()) {
-            this.data = MemoryManager.getInstance().map(this.allocation);
+        if (this.type.mappable()) {
+            this.data = new PointerBuffer(bufferSize);
         }
     }
 
     public void freeBuffer() {
-        MemoryManager.getInstance().addToFreeable(this);
+        // TODO: free memory
     }
 
-    public void reset() { usedBytes = 0; }
+    public void reset() {
+        usedBytes = 0;
+    }
 
-    public long getAllocation() { return allocation; }
+    public long getAllocation() {
+        return allocation;
+    }
 
-    public long getUsedBytes() { return usedBytes; }
+    public long getUsedBytes() {
+        return usedBytes;
+    }
 
-    public long getOffset() { return offset; }
+    public long getOffset() {
+        return offset;
+    }
 
-    public long getId() { return id; }
+    public long getId() {
+        return id;
+    }
 
-    public int getBufferSize() { return bufferSize; }
+    public int getBufferSize() {
+        return bufferSize;
+    }
 
-    protected void setBufferSize(int size) { this.bufferSize = size; }
+    protected void setBufferSize(int size) {
+        this.bufferSize = size;
+    }
 
-    protected void setId(long id) { this.id = id; }
+    protected void setId(long id) {
+        this.id = id;
+    }
 
-    protected void setAllocation(long allocation) {this.allocation = allocation; }
+    protected void setAllocation(long allocation) {
+        this.allocation = allocation;
+    }
 
     public BufferInfo getBufferInfo() {
         return new BufferInfo(this.id, this.allocation, this.bufferSize, this.type.getType());
