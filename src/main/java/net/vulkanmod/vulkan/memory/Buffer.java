@@ -24,7 +24,7 @@ public abstract class Buffer {
         this.type.createBuffer(this, bufferSize);
 
         if (this.type.mappable()) {
-            this.data = PointerBuffer.allocate(bufferSize); // Use the allocate() method
+            this.data = PointerBuffer.allocateDirect(bufferSize); // Use the allocateDirect() method
         }
     }
 
