@@ -19,12 +19,12 @@ public class QueueFamilyIndices {
 
         try (MemoryStack stack = stackPush()) {
 
-            IntBuffer queueFamilyCount = stack.ints(0);
+            IntBuffer queueFamilyCount = stack.ints(1);
 
             vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, null);
 
             if (queueFamilyCount.get(0) == 1) {
-                transferFamily = presentFamily = graphicsFamily = 0;
+                graphicsFamily = presentFamily = 0;
                 return true;
             }
 
@@ -32,68 +32,36 @@ public class QueueFamilyIndices {
 
             vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyCount, queueFamilies);
 
-            //            for(int i = 0; i < queueFamilies.capacity() || !indices.isComplete();i++) {
             for (int i = 0; i < queueFamilies.capacity(); i++) {
                 int queueFlags = queueFamilies.get(i).queueFlags();
 
                 if ((queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
                     graphicsFamily = i;
-
-
-                    if ((queueFlags & VK_QUEUE_COMPUTE_BIT) != 0) {
-                        presentFamily = i;
-                    }
-                } if ((queueFlags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_GRAPHICS_BIT)) == 0
-                        && (queueFlags & VK_QUEUE_TRANSFER_BIT) != 0) {
+                } else if ((queueFlags & VK_QUEUE_COMPUTE_BIT) != 0) {
+                    presentFamily = i;
+                } else if ((queueFlags & VK_QUEUE_TRANSFER_BIT) != 0) {
                     transferFamily = i;
                 }
 
-                if (presentFamily == VK_QUEUE_FAMILY_IGNORED) {
-
-                    if ((queueFlags & VK_QUEUE_COMPUTE_BIT) != 0) {
-                        presentFamily = i;
-                    }
+                if (graphicsFamily != VK_QUEUE_FAMILY_IGNORED && presentFamily != VK_QUEUE_FAMILY_IGNORED && transferFamily != VK_QUEUE_FAMILY_IGNORED) {
+                    break;
                 }
-
-                if (isComplete()) break;
             }
 
             if (transferFamily == VK_QUEUE_FAMILY_IGNORED) {
-
-                int fallback = VK_QUEUE_FAMILY_IGNORED;
                 for (int i = 0; i < queueFamilies.capacity(); i++) {
                     int queueFlags = queueFamilies.get(i).queueFlags();
 
                     if ((queueFlags & VK_QUEUE_TRANSFER_BIT) != 0) {
-                        if (fallback == VK_QUEUE_FAMILY_IGNORED)
-                            fallback = i;
-
-                        if ((queueFlags & (VK_QUEUE_GRAPHICS_BIT)) == 0) {
-                            transferFamily = i;
-
-
-                            fallback = i;
-                        }
+                        transferFamily = i;
+                        break;
                     }
-
-                    if (fallback == VK_QUEUE_FAMILY_IGNORED)
-                        throw new RuntimeException("Failed to find queue family with transfer support");
-
-                    transferFamily = fallback;
                 }
             }
 
+            hasDedicatedTransferQueue = graphicsFamily != transferFamily;
 
-
-            hasDedicatedTransferQueue=graphicsFamily!=transferFamily;
-
-
-            if (graphicsFamily == VK_QUEUE_FAMILY_IGNORED)
-                throw new RuntimeException("Unable to find queue family with graphics support.");
-            if (presentFamily == VK_QUEUE_FAMILY_IGNORED)
-                throw new RuntimeException("Unable to find queue family with present support.");
-
-            return isComplete();
+            return graphicsFamily != VK_QUEUE_FAMILY_IGNORED && presentFamily != VK_QUEUE_FAMILY_IGNORED && transferFamily != VK_QUEUE_FAMILY_IGNORED;
         }
     }
 
@@ -110,10 +78,6 @@ public class QueueFamilyIndices {
 
     public static boolean isComplete() {
         return graphicsFamily != VK_QUEUE_FAMILY_IGNORED && presentFamily != VK_QUEUE_FAMILY_IGNORED && transferFamily != VK_QUEUE_FAMILY_IGNORED;
-    }
-
-    public static boolean isSuitable() {
-        return graphicsFamily != VK_QUEUE_FAMILY_IGNORED && presentFamily != VK_QUEUE_FAMILY_IGNORED;
     }
 
     public static int[] unique() {
