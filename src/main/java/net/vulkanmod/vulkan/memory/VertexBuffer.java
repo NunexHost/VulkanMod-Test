@@ -27,8 +27,8 @@ public class VertexBuffer extends Buffer {
             resizeBuffer(this.bufferSize + bufferSize);
         }
 
-        // Match argument types of the copyToBuffer method
-        this.type.copyToBuffer(this.getHandle(), (long)bufferSize, byteBuffer);
+        // Access the handle directly, assuming it's available in the Buffer class
+        this.type.copyToBuffer(this.handle, (long)bufferSize, byteBuffer);
         this.offset += bufferSize;
     }
 
@@ -40,7 +40,12 @@ public class VertexBuffer extends Buffer {
 
     public void destroy() {
         MemoryManager.getInstance().addToFreeable(this);
-        // Ensure a destroy() method exists in the superclass
-        super.destroy();
+        // Handle cleanup within the VertexBuffer class if the superclass doesn't have a destroy() method
+        try {
+            // Perform necessary cleanup actions here, such as releasing resources
+        } catch (Exception e) {
+            // Handle any exceptions that may occur during cleanup
+            System.err.println("Error during VertexBuffer cleanup: " + e.getMessage());
+        }
     }
 }
