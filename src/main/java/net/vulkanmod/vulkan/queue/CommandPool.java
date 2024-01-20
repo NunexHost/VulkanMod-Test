@@ -158,4 +158,4 @@ public class CommandPool {
             return (handle.getCommandBufferLevel() == VK_COMMAND_BUFFER_LEVEL_PRIMARY) && ((handle.getCommandBufferUsageFlags() & VK_COMMAND_BUFFER_USAGE_TRANSFER_BIT) != 0);
         }
     }
-    
+}
