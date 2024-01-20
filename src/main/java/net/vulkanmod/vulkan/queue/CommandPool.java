@@ -1,13 +1,3 @@
-package net.vulkanmod.mixin.render;
-
-import net.vulkanmod.vulkan.Vulkan;
-import org.lwjgl.vulkan.VK10;
-
-@Overwrite(reason = "Custom blending implementation")
-public static void blendFuncSeparate(int srcFactorRGB, int dstFactorRGB, int srcFactorAlpha, int dstFactorAlpha) {
-    Vulkan.getDevice().cmdBlendFuncSeparate(0, srcFactorRGB, dstFactorRGB, srcFactorAlpha, dstFactorAlpha);
-}
-
 package net.vulkanmod.vulkan.queue;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
