@@ -21,31 +21,33 @@ public class StagingBuffer extends Buffer {
 
     public void copyBuffer(int size, ByteBuffer byteBuffer) {
 
-        if (size > this.bufferSize - this.usedBytes) {
-            // Ensure integer calculation for resizing
-            resizeBuffer((int) (this.bufferSize * 1.5));
+        if(size > this.bufferSize - this.usedBytes) {
+            resizeBuffer((this.bufferSize + size) * 2);
         }
 
-        // Use the correct memCopy method
-        MemoryUtil.memCopy(MemoryUtil.memAddress(this.data.getByteBuffer(0, this.bufferSize)),
-                           MemoryUtil.memAddress(byteBuffer), size);
+//        VUtil.memcpy(byteBuffer, this.data.getByteBuffer(0, this.bufferSize), this.usedBytes);
+        nmemcpy(this.data.get(0) + this.usedBytes, MemoryUtil.memAddress(byteBuffer), size);
 
         offset = usedBytes;
         usedBytes += size;
+
+        //createVertexBuffer(vertexSize, vertexCount, byteBuffer);
     }
 
     public void align(int alignment) {
-        // Align before resizing to avoid unnecessary buffer growth
-        alignBuffer(alignment);
+        int alignedValue = Util.align(usedBytes, alignment);
+
+        if(alignedValue > this.bufferSize) {
+            resizeBuffer((this.bufferSize) * 2);
+        }
+
+        usedBytes = alignedValue;
     }
 
     private void resizeBuffer(int newSize) {
         MemoryManager.getInstance().addToFreeable(this);
         this.createBuffer(newSize);
-    }
 
-    private void alignBuffer(int alignment) {
-        // Use `Util.align` for optimal alignment
-        usedBytes = Util.align(usedBytes, alignment);
+        System.out.println("resized staging buffer to: " + newSize);
     }
 }
