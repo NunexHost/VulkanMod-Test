@@ -51,7 +51,7 @@ public class CommandPool {
 
                 VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.calloc(stack);
                 allocInfo.sType$Default();
-                allocInfo.level(VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+                allocInfo.level(VK_COMMAND_BUFFER_LEVEL_SECONDARY);
                 allocInfo.commandPool(id);
                 allocInfo.commandBufferCount(size);
 
@@ -60,13 +60,10 @@ public class CommandPool {
 
                 VkFenceCreateInfo fenceInfo = VkFenceCreateInfo.calloc(stack);
                 fenceInfo.sType$Default();
-                fenceInfo.flags(VK_FENCE_CREATE_SIGNALED_BIT);
 
                 for(int i = 0; i < size; ++i) {
-                    LongBuffer pFence = stack.mallocLong(size);
-                    vkCreateFence(Vulkan.getDevice(), fenceInfo, null, pFence);
 
-                    CommandBuffer commandBuffer = new CommandBuffer(new VkCommandBuffer(pCommandBuffer.get(i), Vulkan.getDevice()), pFence.get(0));
+                    CommandBuffer commandBuffer = new CommandBuffer(new VkCommandBuffer(pCommandBuffer.get(i), Vulkan.getDevice()), -1);
                     commandBuffer.handle = new VkCommandBuffer(pCommandBuffer.get(i), Vulkan.getDevice());
                     commandBuffers.add(commandBuffer);
                     availableCmdBuffers.add(commandBuffer);
@@ -82,8 +79,6 @@ public class CommandPool {
 
             vkBeginCommandBuffer(commandBuffer.handle, beginInfo);
 
-//            current++;
-
             return commandBuffer;
         }
     }
@@ -91,17 +86,16 @@ public class CommandPool {
     public long submitCommands(CommandBuffer commandBuffer, VkQueue queue) {
 
         try(MemoryStack stack = stackPush()) {
-            long fence = commandBuffer.fence;
+            long fence = -1;
 
             vkEndCommandBuffer(commandBuffer.handle);
 
-            vkResetFences(Vulkan.getDevice(), commandBuffer.fence);
-
-            VkSubmitInfo submitInfo = VkSubmitInfo.calloc(stack);
-            submitInfo.sType(VK_STRUCTURE_TYPE_SUBMIT_INFO);
-            submitInfo.pCommandBuffers(stack.pointers(commandBuffer.handle));
-
-            vkQueueSubmit(queue, submitInfo, fence);
+            if (commandBuffer.isTransfer()) {
+                fence = vkQueueSubmit(queue, commandBuffer.getSubmitInfo(), fence);
+            } else {
+                vkWaitForFences(Vulkan.getDevice(), commandBuffer.getFence(), true, 0, null);
+                commandBuffer.reset();
+            }
 
             return fence;
         }
@@ -113,7 +107,10 @@ public class CommandPool {
 
     public void cleanUp() {
         for(CommandBuffer commandBuffer : commandBuffers) {
-            vkDestroyFence(Vulkan.getDevice(), commandBuffer.fence, null);
+            if (commandBuffer.isTransfer()) {
+                vkWaitForFences(Vulkan.getDevice(), commandBuffer.getFence(), true, 0, null);
+            }
+            vkDestroyFence(Vulkan.getDevice(), commandBuffer.getFence(), null);
         }
         vkResetCommandPool(Vulkan.getDevice(), id, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT);
         vkDestroyCommandPool(Vulkan.getDevice(), id, null);
@@ -149,7 +146,22 @@ public class CommandPool {
         public void reset() {
             this.submitted = false;
             this.recording = false;
+            if (fence != -1) {
+                vkDestroyFence(Vulkan.getDevice(), fence, null);
+                fence = -1;
+            }
             addToAvailable(this);
+        }
+
+        public VkSubmitInfo getSubmitInfo() {
+            VkSubmitInfo submitInfo = VkSubmitInfo.calloc();
+            submitInfo.sType(VK_STRUCTURE_TYPE_SUBMIT_INFO);
+            submitInfo.pCommandBuffers(stack.pointers(handle));
+            return submitInfo;
+        }
+
+        public boolean isTransfer() {
+            return (handle.getCommandBufferLevel() == VK_COMMAND_BUFFER_LEVEL_PRIMARY) && ((handle.getCommandBufferUsageFlags() & VK_COMMAND_BUFFER_USAGE_TRANSFER_BIT) != 0);
         }
     }
 }
