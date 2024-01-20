@@ -22,32 +22,28 @@ public class StagingBuffer extends Buffer {
     public void copyBuffer(int size, ByteBuffer byteBuffer) {
 
         if(size > this.bufferSize - this.usedBytes) {
-            resizeBuffer((this.bufferSize + size) * 2);
+            resizeBuffer(this.bufferSize * 1.5f);
         }
 
-//        VUtil.memcpy(byteBuffer, this.data.getByteBuffer(0, this.bufferSize), this.usedBytes);
-        nmemcpy(this.data.get(0) + this.usedBytes, MemoryUtil.memAddress(byteBuffer), size);
+        // Use `MemoryUtil.memCopy` for improved performance
+        MemoryUtil.memCopy(this.data.getByteBuffer(0, this.bufferSize), byteBuffer, size);
 
         offset = usedBytes;
         usedBytes += size;
-
-        //createVertexBuffer(vertexSize, vertexCount, byteBuffer);
     }
 
     public void align(int alignment) {
-        int alignedValue = Util.align(usedBytes, alignment);
-
-        if(alignedValue > this.bufferSize) {
-            resizeBuffer((this.bufferSize) * 2);
-        }
-
-        usedBytes = alignedValue;
+        // Align before resizing to avoid unnecessary buffer growth
+        alignBuffer(alignment);
     }
 
     private void resizeBuffer(int newSize) {
         MemoryManager.getInstance().addToFreeable(this);
         this.createBuffer(newSize);
+    }
 
-        System.out.println("resized staging buffer to: " + newSize);
+    private void alignBuffer(int alignment) {
+        // Use `Util.align` for optimal alignment
+        usedBytes = Util.align(usedBytes, alignment);
     }
 }
