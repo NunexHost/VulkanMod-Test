@@ -35,27 +35,17 @@ public interface VertexConsumerM {
             float p;
             float o;
 
-            float l;
-            float n;
-            float m;
-
             int i = k * 8;
             float f = Float.intBitsToFloat(js[i]);
             float g = Float.intBitsToFloat(js[i + 1]);
             float h = Float.intBitsToFloat(js[i + 2]);
 
-            if (useQuadColorData) {
-                l = VertexUtil.unpackColorR(js[i + 3]); // equivalent to / 255.0f
-                m = VertexUtil.unpackColorG(js[i + 3]);
-                n = VertexUtil.unpackColorB(js[i + 3]);
-                o = l * brightness[k] * red;
-                p = m * brightness[k] * green;
-                q = n * brightness[k] * blue;
-            } else {
-                o = brightness[k] * red;
-                p = brightness[k] * green;
-                q = brightness[k] * blue;
-            }
+            float l = VertexUtil.unpackColor(js[i + 3], 24);
+            float m = VertexUtil.unpackColor(js[i + 3], 16);
+            float n = VertexUtil.unpackColor(js[i + 3], 8);
+            o = l * brightness[k] * red;
+            p = m * brightness[k] * green;
+            q = n * brightness[k] * blue;
 
             int r = lights[k];
             m = Float.intBitsToFloat(js[i + 4]);
