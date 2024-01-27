@@ -27,11 +27,7 @@ public class AreaUploadManager {
     boolean hasBufferSwap = false;
 
     ObjectArrayList<AreaBuffer.Segment>[] recordedUploads;
-    CommandPool.CommandBuffer[] commandBuffers;
-
-    //    LongOpenHashSet dstBuffers = new LongOpenHashSet();
-    
-    final Long2ObjectArrayMap<ObjectArrayFIFOQueue<SubCopyCommand>> subCopyCommands = new Long2ObjectArrayMap<>();
+    CommandPool.CommandBuffer[] commandBuffers; 
 
     int currentFrame;
 
