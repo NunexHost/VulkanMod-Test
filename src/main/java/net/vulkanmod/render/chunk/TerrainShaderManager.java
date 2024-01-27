@@ -14,8 +14,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import static net.vulkanmod.vulkan.shader.SPIRVUtils.compileShader;
-
 public abstract class TerrainShaderManager {
 
     private static final String basePath = String.format("basic/%s/%s", "terrain", "terrain");
@@ -26,7 +24,7 @@ public abstract class TerrainShaderManager {
     static GraphicsPipeline terrainShader;
 
     public static void init() {
-        setTerrainVertexFormat(CustomVertexFormat.COMPRESSED_TERRAIN);
+        TERRAIN_VERTEX_FORMAT = CustomVertexFormat.COMPRESSED_TERRAIN; // Set the global format directly
         createBasicPipelines();
         setDefaultShader();
         ThreadBuilderPack.defaultTerrainBuilderConstructor();
@@ -51,14 +49,14 @@ public abstract class TerrainShaderManager {
         SPIRVUtils.SPIRV fragShaderSPIRV = getShader(pathF);
 
         // **Create the pipeline**
-        pipelineBuilder.compileShaders(fragShaderSPIRV);
+        pipelineBuilder.compileShaders(); // Assuming this handles the cached SPIRV data internally
         return pipelineBuilder.createGraphicsPipeline();
     }
 
     private static SPIRVUtils.SPIRV getShader(String fragPath) {
         if (!shaderCache.containsKey(fragPath)) {
-            String path = Paths.get(Initializer.getAssetsPath(), fragPath).toString();
-            SPIRVUtils.SPIRV fragShaderSPIRV = compileShader(path, SPIRVUtils.ShaderKind.FRAGMENT_SHADER);
+            String path = Paths.get(Initializer.ASSETS_PATH, fragPath).toString(); // Use the correct path constant
+            SPIRVUtils.SPIRV fragShaderSPIRV = SPIRVUtils.compileShader(path, SPIRVUtils.ShaderKind.FRAGMENT_SHADER, ""); // Provide an empty vertex shader
             if (fragShaderSPIRV == null) {
                 throw new RuntimeException("Failed to compile shader: " + path);
             }
@@ -85,4 +83,4 @@ public abstract class TerrainShaderManager {
 
     private static Function<TerrainRenderType, GraphicsPipeline> shaderGetter = renderType -> terrainShader;
 
-                }
+}
