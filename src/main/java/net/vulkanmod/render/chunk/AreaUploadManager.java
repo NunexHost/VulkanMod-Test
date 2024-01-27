@@ -83,12 +83,12 @@ public class AreaUploadManager {
     public void uploadAsync(AreaBuffer.Segment uploadSegment, long bufferId, int dstOffset, int bufferSize, ByteBuffer src) {
         // Utilize um pool de buffers de upload para reduzir alocações frequentes.
 //        StagingBuffer stagingBuffer = Vulkan.getBuffer(bufferSize);
-        stagingBuffer.copyBuffer(bufferSize, src);
+   //     stagingBuffer.copyBuffer(bufferSize, src);
 
         if (!subCopyCommands.containsKey(bufferId)) {
             subCopyCommands.put(bufferId, new ObjectArrayFIFOQueue<>(12));
         }
-        subCopyCommands.get(bufferId).enqueue(new SubCopyCommand(stagingBuffer.getOffset(), dstOffset, bufferSize));
+//        subCopyCommands.get(bufferId).enqueue(new SubCopyCommand(stagingBuffer.getOffset(), dstOffset, bufferSize));
 
         this.recordedUploads[this.currentFrame].add(uploadSegment);
     }
