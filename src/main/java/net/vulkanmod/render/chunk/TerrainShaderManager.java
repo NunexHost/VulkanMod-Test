@@ -55,8 +55,8 @@ public abstract class TerrainShaderManager {
 
     private static SPIRVUtils.SPIRV getShader(String fragPath) {
         if (!shaderCache.containsKey(fragPath)) {
-            String path = Paths.get(Initializer.ASSETS_PATH, fragPath).toString(); // Use the correct path constant
-            SPIRVUtils.SPIRV fragShaderSPIRV = SPIRVUtils.compileShader(path, SPIRVUtils.ShaderKind.FRAGMENT_SHADER, ""); // Provide an empty vertex shader
+            String path = Paths.get(Initializer.getAssetsPath(), fragPath).toString(); // Use the correct method to access the assets path
+            SPIRVUtils.SPIRV fragShaderSPIRV = SPIRVUtils.compileShader(path, SPIRVUtils.ShaderKind.FRAGMENT_SHADER, SPIRVUtils.ShaderKind.VERTEX_SHADER); // Provide an empty vertex shader kind
             if (fragShaderSPIRV == null) {
                 throw new RuntimeException("Failed to compile shader: " + path);
             }
