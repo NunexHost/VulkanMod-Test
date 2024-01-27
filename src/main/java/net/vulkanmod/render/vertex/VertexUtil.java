@@ -4,25 +4,43 @@ import net.vulkanmod.vulkan.util.ColorUtil;
 
 public class VertexUtil {
 
-    private static final float FLOAT_TO_BYTE_NORM = 1.0f / 127.0f;
-    private static final float FLOAT_TO_BYTE_COLOR = 1.0f / 255.0f;
+    private static final float NORM_INV = 1.0f / 127.0f;
+    private static final float COLOR_INV = 1.0f / 255.0f;
 
     public static int packColor(float r, float g, float b, float a) {
         return ColorUtil.packColorIntRGBA(r, g, b, a);
     }
 
     public static int packNormal(float x, float y, float z) {
-        return (int)(x * FLOAT_TO_BYTE_NORM) |
-                (int)(y * FLOAT_TO_BYTE_NORM) << 8 |
-                (int)(z * FLOAT_TO_BYTE_NORM) << 16;
+        x *= 127.0f;
+        y *= 127.0f;
+        z *= 127.0f;
+
+        return ((int)x & 0xFF) | ((int)y & 0xFF) << 8|  ((int)z & 0xFF) << 16;
     }
 
-    public static float unpackColor(int i, int shift) {
-        return (i >> shift) & 0xFF;
+    public static float unpackColorR(int i) {
+        return ((i >> 24) & 0xFF) * COLOR_INV;
     }
 
-    public static float unpackNormal(int i) {
-        return (i & 0xFF) * FLOAT_TO_BYTE_NORM;
+    public static float unpackColorG(int i) {
+        return ((i >> 16) & 0xFF) * COLOR_INV;
+    }
+
+    public static float unpackColorB(int i) {
+        return ((i >> 8) & 0xFF) * COLOR_INV;
+    }
+
+    public static float unpackN1(int i) {
+        return (byte)(i & 0xFF) * NORM_INV;
+    }
+
+    public static float unpackN2(int i) {
+        return (byte)((i >> 8) & 0xFF) * NORM_INV;
+    }
+
+    public static float unpackN3(int i) {
+        return (byte)((i >> 16) & 0xFF) * NORM_INV;
     }
 
 }
