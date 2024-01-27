@@ -82,7 +82,7 @@ public class AreaUploadManager {
 
     public void uploadAsync(AreaBuffer.Segment uploadSegment, long bufferId, int dstOffset, int bufferSize, ByteBuffer src) {
         // Utilize um pool de buffers de upload para reduzir alocações frequentes.
-        StagingBuffer stagingBuffer = Vulkan.getStagingBuffer().getBuffer(bufferSize);
+        StagingBuffer stagingBuffer = Vulkan.getStagingBuffer(bufferSize);
         stagingBuffer.copyBuffer(bufferSize, src);
 
         if (!subCopyCommands.containsKey(bufferId)) {
