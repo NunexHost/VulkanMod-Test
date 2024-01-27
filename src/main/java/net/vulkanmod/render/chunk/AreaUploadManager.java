@@ -3,7 +3,7 @@ package net.vulkanmod.render.chunk;
 import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue
+import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
 import net.vulkanmod.Initializer;
 import net.vulkanmod.vulkan.*;
 import net.vulkanmod.vulkan.memory.StagingBuffer;
