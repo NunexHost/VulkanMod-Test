@@ -9,21 +9,18 @@ import net.vulkanmod.vulkan.shader.GraphicsPipeline;
 import net.vulkanmod.vulkan.shader.Pipeline;
 import net.vulkanmod.vulkan.shader.SPIRVUtils;
 
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
-import static net.vulkanmod.vulkan.shader.SPIRVUtils.compileShaderAbsoluteFile;
+import static net.vulkanmod.vulkan.shader.SPIRVUtils.compileShader;
 
 public abstract class TerrainShaderManager {
 
-    private static final String resourcePath1 = SPIRVUtils.class.getResource("/assets/vulkanmod/shaders/").toExternalForm();
     private static final String basePath = String.format("basic/%s/%s", "terrain", "terrain");
     public static VertexFormat TERRAIN_VERTEX_FORMAT;
-    private static final SPIRVUtils.SPIRV vertShaderSPIRV = compileShaderAbsoluteFile(String.format("%s%s.vsh", resourcePath1, basePath), SPIRVUtils.ShaderKind.VERTEX_SHADER);
-
-
-    public static void setTerrainVertexFormat(VertexFormat format) {
-        TERRAIN_VERTEX_FORMAT = format;
-    }
+    private static final Map<String, SPIRVUtils.SPIRV> shaderCache = new HashMap<>();
 
     static GraphicsPipeline terrainShaderEarlyZ;
     static GraphicsPipeline terrainShader;
@@ -45,32 +42,33 @@ public abstract class TerrainShaderManager {
     }
 
     private static GraphicsPipeline createPipeline(String fragPath) {
-        String pathF = String.format("basic/%s/%s", "terrain", fragPath);
+        String pathF = String.format("%s%s.fsh", basePath, fragPath);
 
         Pipeline.Builder pipelineBuilder = new Pipeline.Builder(CustomVertexFormat.COMPRESSED_TERRAIN, basePath);
         pipelineBuilder.parseBindingsJSON();
 
-
         // **Cache the compiled shader code**
-        SPIRVUtils.SPIRV fragShaderSPIRV = cacheShader(pathF);
+        SPIRVUtils.SPIRV fragShaderSPIRV = getShader(pathF);
 
         // **Create the pipeline**
-        pipelineBuilder.compileShaders2(vertShaderSPIRV, fragShaderSPIRV);
+        pipelineBuilder.compileShaders(fragShaderSPIRV);
         return pipelineBuilder.createGraphicsPipeline();
     }
 
-    private static SPIRVUtils.SPIRV cacheShader(String fragPath) {
-        String path = String.format("%s%s.fsh", resourcePath1, fragPath);
-        SPIRVUtils.SPIRV fragShaderSPIRV = SPIRVUtils.compileShaderAbsoluteFile(path, SPIRVUtils.ShaderKind.FRAGMENT_SHADER);
-        if (fragShaderSPIRV == null) {
-            throw new RuntimeException("Failed to compile shader: " + path);
+    private static SPIRVUtils.SPIRV getShader(String fragPath) {
+        if (!shaderCache.containsKey(fragPath)) {
+            String path = Paths.get(Initializer.getAssetsPath(), fragPath).toString();
+            SPIRVUtils.SPIRV fragShaderSPIRV = compileShader(path, SPIRVUtils.ShaderKind.FRAGMENT_SHADER);
+            if (fragShaderSPIRV == null) {
+                throw new RuntimeException("Failed to compile shader: " + path);
+            }
+            shaderCache.put(fragPath, fragShaderSPIRV);
         }
-        return fragShaderSPIRV;
+        return shaderCache.get(fragPath);
     }
 
     public static GraphicsPipeline getTerrainShader(TerrainRenderType renderType) {
-        return switch (renderType)
-        {
+        return switch (renderType) {
             case SOLID, TRANSLUCENT, TRIPWIRE -> terrainShaderEarlyZ;
             case CUTOUT_MIPPED, CUTOUT -> terrainShader;
         };
@@ -87,4 +85,4 @@ public abstract class TerrainShaderManager {
 
     private static Function<TerrainRenderType, GraphicsPipeline> shaderGetter = renderType -> terrainShader;
 
-        }
+                }
