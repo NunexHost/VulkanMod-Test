@@ -1,11 +1,11 @@
 package net.vulkanmod.render.chunk;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.vulkanmod.Initializer;
 import net.vulkanmod.vulkan.*;
 import net.vulkanmod.vulkan.memory.StagingBuffer;
-import net.vulkanmod.vulkan.memory.StagingBufferPool;
 import net.vulkanmod.vulkan.queue.CommandPool;
 
 import org.lwjgl.system.MemoryStack;
@@ -57,7 +57,7 @@ public class AreaUploadManager {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             FakeTransferQueue.PriorWriteBarrier(this.commandBuffers[currentFrame].getHandle());
 
-            long stagingBufferId = Vulkan.getStagingBufferPool().getId();
+            long stagingBufferId = Vulkan.getStagingBuffer().getId();
             for (long bufferHandle : subCopyCommands.keySet()) {
                 final ObjectArrayFIFOQueue<SubCopyCommand> subCopyCommands1 = subCopyCommands.get(bufferHandle);
 
