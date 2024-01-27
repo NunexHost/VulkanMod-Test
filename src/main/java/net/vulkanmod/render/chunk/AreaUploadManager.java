@@ -29,6 +29,8 @@ public class AreaUploadManager {
     ObjectArrayList<AreaBuffer.Segment>[] recordedUploads;
     CommandPool.CommandBuffer[] commandBuffers; 
 
+    final Long2ObjectArrayMap<ObjectArrayFIFOQueue<SubCopyCommand>> subCopyCommands = new Long2ObjectArrayMap<>();
+    
     int currentFrame;
 
     public void init() {
